@@ -96,7 +96,7 @@ struct MapScreen: View {
         .navigationBarTitleDisplayMode(.inline)
 
         // MARK: - Navigation
-        // TODO: Replace Text("Next Page") with your real next screen later.
+        // TODO: 
         .navigationDestination(isPresented: $goToNextPage) {
             Text("Next Page")
         }

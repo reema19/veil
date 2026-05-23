@@ -2,9 +2,6 @@
 //  LocationPermissionSheetView.swift
 //  VEIL
 //
-//  Created by Rahaf Alhammadi on 06/12/1447 AH.
-//
-
 
 import SwiftUI
 
@@ -17,7 +14,7 @@ struct LocationPermissionSheetView: View {
 
         ZStack {
 
-            // MARK: - Dark Background
+            // dark background
             Color.black.opacity(0.18)
                 .ignoresSafeArea()
                 .transition(.opacity)
@@ -28,11 +25,9 @@ struct LocationPermissionSheetView: View {
 
                 VStack(spacing: 0) {
 
-                    // MARK: - Close Button
+                    // top button
                     ZStack {
-
                         Button(action: onClose) {
-
                             Image(systemName: "xmark")
                                 .font(.system(size: 20, weight: .medium))
                                 .foregroundColor(.gray)
@@ -45,7 +40,7 @@ struct LocationPermissionSheetView: View {
 
                     Spacer().frame(height: 4)
 
-                    // MARK: - Icon
+                    // icon
                     ZStack {
 
                         Image("xmarkVector")
@@ -61,7 +56,6 @@ struct LocationPermissionSheetView: View {
 
                     Spacer().frame(height: 34)
 
-                    // MARK: - Title
                     Text("We notice you through place")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(Color("TitleColor"))
@@ -69,7 +63,6 @@ struct LocationPermissionSheetView: View {
 
                     Spacer().frame(height: 14)
 
-                    // MARK: - Description
                     Text("Sense uses your location only when you arrive at a place you saved.")
                         .font(.system(size: 16))
                         .foregroundColor(Color("SubtitleColor"))
@@ -79,9 +72,8 @@ struct LocationPermissionSheetView: View {
 
                     Spacer()
 
-                    // MARK: - Done Button
+                    // done button
                     Button(action: onDone) {
-
                         Text("Done")
                             .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(.white)

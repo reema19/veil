@@ -97,8 +97,7 @@ class MapViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     // MARK: - Radius UI Helper
     func radiusToPixels(_ radius: CLLocationDistance) -> CGFloat {
 
-        // Visual approximation only.
-        // 1 km ≈ 150 px.
+        
         let scale = CGFloat(radius / 1000.0) * 150
 
         return scale

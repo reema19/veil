@@ -4,7 +4,6 @@
 //
 //  Created by Ghady Al Omar on 06/12/1447 AH.
 //
-//
 
 import SwiftUI
 import Combine
@@ -42,10 +41,15 @@ final class OnboardingViewModel: ObservableObject {
     @Published var isAnimating: Bool = false
     @Published var showStartCentered: Bool = false
 
+    // MARK: - Navigation State
+
+    @Published var goToMainpage: Bool = false
+
     // MARK: - Actions
 
     func startAnimations() {
         isAnimating = true
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { [weak self] in
             withAnimation {
                 self?.showStartCentered = true
@@ -54,6 +58,6 @@ final class OnboardingViewModel: ObservableObject {
     }
 
     func handleStart() {
-        // Navigate to main app or dismiss onboarding
+        goToMainpage = true
     }
 }

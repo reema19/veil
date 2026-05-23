@@ -4,7 +4,6 @@
 //
 //  Created by Ghady Al Omar on 06/12/1447 AH.
 //
-//
 
 import SwiftUI
 
@@ -31,15 +30,25 @@ struct BePresentView: View {
             VStack {
                 Spacer()
 
-                OnboardingTextBlock(title: page.title, subtitle: page.subtitle)
+                OnboardingTextBlock(
+                    title: page.title,
+                    subtitle: page.subtitle
+                )
 
                 Spacer().frame(height: 90)
 
                 HStack {
-                    DotsIndicatorView(totalPages: page.totalPages, currentIndex: page.index)
+                    DotsIndicatorView(
+                        totalPages: page.totalPages,
+                        currentIndex: page.index
+                    )
+
                     Spacer()
+
                     NavigationLink("Next") {
-                        BePresentView2(page: OnboardingViewModel().pages[1])
+                        BePresentView2(
+                            page: OnboardingViewModel().pages[1]
+                        )
                     }
                     .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(Color("TitleColor"))
@@ -51,6 +60,7 @@ struct BePresentView: View {
         .navigationBarHidden(true)
     }
 }
+
 #Preview {
     BePresentView(page: OnboardingViewModel().pages[0])
 }

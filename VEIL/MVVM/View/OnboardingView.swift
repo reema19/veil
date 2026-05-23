@@ -19,7 +19,18 @@ struct OnboardingView: View {
 
 // MARK: - Previews
 
-#Preview { OnboardingView() }
-#Preview { BePresentView(page: OnboardingViewModel().pages[0]) }
-#Preview { BePresentView2(page: OnboardingViewModel().pages[1]) }
-#Preview { BePresentView3(page: OnboardingViewModel().pages[2]) }
+#Preview {
+    OnboardingView()
+}
+
+#Preview {
+    BePresentView(page: OnboardingViewModel().pages[0])
+}
+
+#Preview {
+    BePresentView2(page: OnboardingViewModel().pages[1])
+}
+
+#Preview {
+    BePresentView3(page: OnboardingViewModel().pages[2])
+}

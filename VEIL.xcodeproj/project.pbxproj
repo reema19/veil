@@ -11,7 +11,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		E507E3D92FC1B86B00C7A5EB /* Exceptions for "VEIL" folder in "VEIL" target */ = {
+		B560D8C62FC25700001A3F63 /* Exceptions for "VEIL" folder in "VEIL" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -24,7 +24,7 @@
 		E507E3832FC1B45600C7A5EB /* VEIL */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				E507E3D92FC1B86B00C7A5EB /* Exceptions for "VEIL" folder in "VEIL" target */,
+				B560D8C62FC25700001A3F63 /* Exceptions for "VEIL" folder in "VEIL" target */,
 			);
 			path = VEIL;
 			sourceTree = "<group>";
@@ -266,11 +266,14 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8DW5RJTF88;
+				DEVELOPMENT_TEAM = XZ6MF4N8CV;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = VEIL/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "";
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to help you save and observe familiar places.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -300,11 +303,14 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8DW5RJTF88;
+				DEVELOPMENT_TEAM = XZ6MF4N8CV;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = VEIL/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "";
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use your location to help you save and observe familiar places.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

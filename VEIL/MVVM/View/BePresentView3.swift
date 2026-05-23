@@ -5,15 +5,11 @@
 //  Created by Ghady Al Omar on 06/12/1447 AH.
 //
 
-//
-//  BePresentView3.swift
-//  ghady
-//
-
 import SwiftUI
 
 struct BePresentView3: View {
     private let page: OnboardingPage
+
     @StateObject private var viewModel = OnboardingViewModel()
 
     init(page: OnboardingPage) {
@@ -33,7 +29,8 @@ struct BePresentView3: View {
                     .scaleEffect(viewModel.isAnimating ? 1.06 : 1.0)
                     .offset(y: viewModel.isAnimating ? -8 : 0)
                     .animation(
-                        .easeInOut(duration: 3).repeatForever(autoreverses: true),
+                        .easeInOut(duration: 3)
+                            .repeatForever(autoreverses: true),
                         value: viewModel.isAnimating
                     )
             }
@@ -42,7 +39,10 @@ struct BePresentView3: View {
             VStack {
                 Spacer()
 
-                OnboardingTextBlock(title: page.title, subtitle: page.subtitle)
+                OnboardingTextBlock(
+                    title: page.title,
+                    subtitle: page.subtitle
+                )
 
                 Spacer().frame(height: 120)
 
@@ -52,15 +52,25 @@ struct BePresentView3: View {
                 .frame(height: 44)
                 .padding(.horizontal, 32)
                 .padding(.bottom, 36)
-                .animation(.spring(response: 0.6, dampingFraction: 0.75), value: viewModel.showStartCentered)
+                .animation(
+                    .spring(response: 0.6, dampingFraction: 0.75),
+                    value: viewModel.showStartCentered
+                )
             }
         }
         .navigationBarHidden(true)
         .onAppear {
             viewModel.startAnimations()
         }
+        .navigationDestination(isPresented: $viewModel.goToMainpage) {
+            Mainpage()
+                .navigationBarBackButtonHidden(true)
+        }
     }
 }
+
 #Preview {
-    BePresentView3(page: OnboardingViewModel().pages[2])
+    NavigationStack {
+        BePresentView3(page: OnboardingViewModel().pages[2])
+    }
 }
