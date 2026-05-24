@@ -36,6 +36,10 @@ final class OnboardingViewModel: ObservableObject {
         )
     ]
 
+    // MARK: - Current Page State
+
+    @Published var currentIndex: Int = 0
+
     // MARK: - Page 3 State
 
     @Published var isAnimating: Bool = false
@@ -47,7 +51,17 @@ final class OnboardingViewModel: ObservableObject {
 
     // MARK: - Actions
 
+    func goToNextPage() {
+        guard currentIndex < pages.count - 1 else { return }
+
+        withAnimation(.easeInOut(duration: 0.45)) {
+            currentIndex += 1
+        }
+    }
+
     func startAnimations() {
+        guard isAnimating == false else { return }
+
         isAnimating = true
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { [weak self] in

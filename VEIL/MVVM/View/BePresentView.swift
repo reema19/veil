@@ -9,23 +9,19 @@ import SwiftUI
 
 struct BePresentView: View {
     private let page: OnboardingPage
+    private let onNext: () -> Void
 
-    init(page: OnboardingPage) {
+    init(page: OnboardingPage, onNext: @escaping () -> Void) {
         self.page = page
+        self.onNext = onNext
     }
 
     var body: some View {
         ZStack(alignment: .top) {
             Color("BackgroundColor").ignoresSafeArea()
 
-            ZStack {
-                Image(page.imageName)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 360, height: 400)
-                    .offset(x: 40, y: 40)
-            }
-            .offset(x: 30, y: 40)
+            BlueCircleStackView()
+                .offset(x: 60, y: 140)
 
             VStack {
                 Spacer()
@@ -35,23 +31,24 @@ struct BePresentView: View {
                     subtitle: page.subtitle
                 )
 
-                Spacer().frame(height: 90)
+                Spacer().frame(height: 40)
 
-                HStack {
+                ZStack {
                     DotsIndicatorView(
                         totalPages: page.totalPages,
                         currentIndex: page.index
                     )
+                    .frame(maxWidth: .infinity, alignment: .center)
 
-                    Spacer()
+                    HStack {
+                        Spacer()
 
-                    NavigationLink("Next") {
-                        BePresentView2(
-                            page: OnboardingViewModel().pages[1]
-                        )
+                        Button("Next") {
+                            onNext()
+                        }
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(Color("TitleColor"))
                     }
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(Color("TitleColor"))
                 }
                 .padding(.horizontal, 32)
                 .padding(.bottom, 36)
@@ -62,5 +59,8 @@ struct BePresentView: View {
 }
 
 #Preview {
-    BePresentView(page: OnboardingViewModel().pages[0])
+    BePresentView(
+        page: OnboardingViewModel().pages[0],
+        onNext: {}
+    )
 }

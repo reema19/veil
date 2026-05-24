@@ -19,7 +19,7 @@ struct OnboardingTextBlock: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title)
-                .font(.system(size: 38, weight: .bold))
+                .font(.system(size: 36, weight: .bold))
                 .foregroundColor(Color("TitleColor"))
             Text(subtitle)
                 .font(.system(size: 18).italic())
