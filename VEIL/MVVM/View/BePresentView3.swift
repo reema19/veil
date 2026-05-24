@@ -21,31 +21,48 @@ struct BePresentView3: View {
         ZStack(alignment: .top) {
             Color("BackgroundColor").ignoresSafeArea()
 
-            YellowCircleStackView()
-                .offset(x: 90, y: 130)
+            YellowCircleStackView(
+                hideDots: viewModel.hideYellowDots,
+                expandCircles: viewModel.expandYellowCircles
+            )
+            .offset(
+                x: viewModel.expandYellowCircles ? 0 : 90,
+                y: viewModel.expandYellowCircles ? 0 : 80
+            )//
 
-            VStack {
-                Spacer()
-
-                OnboardingTextBlock(
-                    title: page.title,
-                    subtitle: page.subtitle
+            if viewModel.showNameField {
+                NameEntryView(
+                    name: $viewModel.enteredName,
+                    onSubmit: {
+                        viewModel.submitName()
+                    }
                 )
+                .transition(
+                    .opacity.combined(with: .scale(scale: 0.96))
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            } else if !viewModel.hidePageThreeContent {
+                VStack {
+                    Spacer()
 
-                Spacer().frame(height: 60)
+                    OnboardingTextBlock(
+                        title: page.title,
+                        subtitle: page.subtitle
+                    )//
 
-                StartButtonView {
-                    viewModel.handleStart()
+                    Spacer().frame(height: 60)
+
+                    StartButtonView {
+                        viewModel.handleStart()
+                    }
+                    .frame(height: 50)
+                    .padding(.horizontal, 32)
+                    .padding(.bottom, 36)
                 }
-                .frame(height: 50)
-                .padding(.horizontal, 32)
-                .padding(.bottom, 36)
+                .transition(.opacity)
             }
         }
         .navigationBarHidden(true)
-        .onAppear {
-            viewModel.startAnimations()
-        }
     }
 }
 

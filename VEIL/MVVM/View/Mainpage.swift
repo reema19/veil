@@ -9,6 +9,7 @@ struct Mainpage: View {
 
     @StateObject private var vm = MainpageViewModel()
     @StateObject private var locationPermissionViewModel = LocationPermissionViewModel()
+    @AppStorage("user_name") private var userName: String = ""
 
     @State private var goToMapScreen = false
 
@@ -22,18 +23,14 @@ struct Mainpage: View {
             VStack(spacing: 0) {
 
                 // MARK: - Header
-                HStack(alignment: .center) {
+                HStack(spacing: 6) {
+                    Text("Morning")
+                        .font(.system(size: 30, weight: .bold))
+                        .foregroundColor(Color("TitleColor"))
 
-                        Text("Morning")
-                            .font(.system(size: 30, weight: .bold))
-                            .foregroundColor(Color("TitleColor"))
-                            
-                        Text("Ghady")
-                            .font(.system(size: 30, weight: .regular))
-                            .foregroundColor(Color("TitleColor"))
-                        
-                    
-
+                    Text(userName.isEmpty ? "there" : userName)
+                        .font(.system(size: 30, weight: .regular))
+                        .foregroundColor(Color("TitleColor"))
                     Spacer()
                 }
                 .padding(.horizontal, 38)

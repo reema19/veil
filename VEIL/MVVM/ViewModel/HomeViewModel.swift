@@ -8,7 +8,11 @@ import Combine
 
 final class HomeViewModel: ObservableObject {
 
-    @Published var userName: String = "Elaf"
+    @AppStorage("user_name") private var savedUserName: String = ""
+
+    var userName: String {
+        savedUserName.isEmpty ? "there" : savedUserName
+    }
     @Published var totalPresenceTime: String = "00:00:00"
 
     @Published var places: [WatchingPlace] = [

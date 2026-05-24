@@ -2,8 +2,6 @@
 //  OnboardingViewModel.swift
 //  VEIL
 //
-//  Created by Ghady Al Omar on 06/12/1447 AH.
-//
 
 import SwiftUI
 import Combine
@@ -39,39 +37,54 @@ final class OnboardingViewModel: ObservableObject {
     // MARK: - Current Page State
 
     @Published var currentIndex: Int = 0
+    @Published var hidePageThreeContent: Bool = false
+    // MARK: - Name Entry State
 
-    // MARK: - Page 3 State
-
-    @Published var isAnimating: Bool = false
-    @Published var showStartCentered: Bool = false
+    @Published var enteredName: String = ""
+    @Published var hideYellowDots: Bool = false
+    @Published var expandYellowCircles: Bool = false
+    @Published var showNameField: Bool = false
 
     // MARK: - Navigation State
 
     @Published var goToMainpage: Bool = false
 
+    // MARK: - Stored User Name
+
+    @AppStorage("user_name") var savedUserName: String = ""
+
     // MARK: - Actions
 
     func goToNextPage() {
         guard currentIndex < pages.count - 1 else { return }
-
-        withAnimation(.easeInOut(duration: 0.45)) {
-            currentIndex += 1
-        }
+        currentIndex += 1
     }
 
-    func startAnimations() {
-        guard isAnimating == false else { return }
+    func handleStart() {
+        withAnimation(.easeInOut(duration: 0.25)) {
+            hidePageThreeContent = true
+            hideYellowDots = true
+        }
 
-        isAnimating = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in
+            withAnimation(.easeInOut(duration: 2.9)) {
+                self?.expandYellowCircles = true
+            }
+        }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { [weak self] in
-            withAnimation {
-                self?.showStartCentered = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.15) { [weak self] in
+            withAnimation(.easeInOut(duration: 1.0)) {
+                self?.showNameField = true
             }
         }
     }
 
-    func handleStart() {
+    func submitName() {
+        let trimmedName = enteredName.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmedName.isEmpty else { return }
+
+        savedUserName = trimmedName
         goToMainpage = true
     }
 }

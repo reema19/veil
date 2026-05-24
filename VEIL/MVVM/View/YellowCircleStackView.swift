@@ -7,6 +7,9 @@ import SwiftUI
 
 struct YellowCircleStackView: View {
 
+    var hideDots: Bool = false
+    var expandCircles: Bool = false
+
     @State private var rotateDots = false
 
     var body: some View {
@@ -35,6 +38,7 @@ struct YellowCircleStackView: View {
                 .frame(width: 180, height: 180)
                 .rotationEffect(.degrees(rotateDots ? 360 : 300))
                 .offset(x: 6, y: 8)
+                .opacity(hideDots ? 0 : 1)
                 .animation(
                     .linear(duration: 8)
                         .repeatForever(autoreverses: false),
@@ -42,6 +46,7 @@ struct YellowCircleStackView: View {
                 )
         }
         .frame(width: 360, height: 400)
+        .scaleEffect(expandCircles ? 15.0 : 1.0)
         .onAppear {
             rotateDots = true
         }
