@@ -16,6 +16,7 @@ enum SenseType: CaseIterable {
         switch self {
         case .sight:
             return "eye"
+
         case .sound:
             return "ear.badge.waveform"
         }
@@ -25,6 +26,7 @@ enum SenseType: CaseIterable {
         switch self {
         case .sight:
             return "Sight"
+
         case .sound:
             return "Sound"
         }
@@ -34,6 +36,7 @@ enum SenseType: CaseIterable {
         switch self {
         case .sight:
             return "Capture a photo of what stands out in this place."
+
         case .sound:
             return "Record the ambient sound that shapes the atmosphere."
         }
@@ -43,6 +46,7 @@ enum SenseType: CaseIterable {
         switch self {
         case .sight:
             return "sightcolor"
+
         case .sound:
             return "soundcolor"
         }
