@@ -8,7 +8,9 @@ import SwiftUI
 struct Mainpage: View {
 
     @StateObject private var vm = MainpageViewModel()
+    @StateObject private var homeViewModel = HomeViewModel()
     @StateObject private var locationPermissionViewModel = LocationPermissionViewModel()
+
     @AppStorage("user_name") private var userName: String = ""
 
     @State private var goToMapScreen = false
@@ -31,6 +33,7 @@ struct Mainpage: View {
                     Text(userName.isEmpty ? "there" : userName)
                         .font(.system(size: 30, weight: .regular))
                         .foregroundColor(Color("TitleColor"))
+
                     Spacer()
                 }
                 .padding(.horizontal, 38)
@@ -47,7 +50,6 @@ struct Mainpage: View {
                 // MARK: - Add Place Button
                 Button(action: {
 
-                    
                     withAnimation(.spring(response: 0.35,
                                           dampingFraction: 0.85)) {
                         vm.showLocationSheet = true
@@ -102,9 +104,17 @@ struct Mainpage: View {
         }
         .onAppear {
             vm.startPulse()
+            homeViewModel.loadSavedPlaces()
         }
         .navigationDestination(isPresented: $goToMapScreen) {
-            MapScreen()
+            MapScreen(
+                onPlaceAdded: { placeName, activeDays in
+                    homeViewModel.addPlace(
+                        title: placeName,
+                        totalDays: activeDays
+                    )
+                }
+            )
         }
         .onChange(of: locationPermissionViewModel.permissionGranted) { oldValue, newValue in
             if newValue {

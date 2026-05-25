@@ -9,6 +9,7 @@ struct HomeView: View {
 
     @StateObject private var viewModel = HomeViewModel()
     @State private var selectedTab: Int = 0
+    @State private var goToMapScreen = false
 
     var body: some View {
         ZStack {
@@ -43,7 +44,7 @@ struct HomeView: View {
                     WatchingPlacesSectionView(
                         places: viewModel.places,
                         onAddPlaceTap: {
-                            print("Add place tapped")
+                            goToMapScreen = true
                         }
                     )
                 }
@@ -57,8 +58,21 @@ struct HomeView: View {
                 .padding(.horizontal, 40)
                 .padding(.bottom, 8)
         }
-        .navigationBarBackButtonHidden(true)
+        .onAppear {
+            viewModel.loadSavedPlaces()
+        }
+        .navigationDestination(isPresented: $goToMapScreen) {
+            MapScreen(
+                onPlaceAdded: { placeName, activeDays in
+                    viewModel.addPlace(
+                        title: placeName,
+                        totalDays: activeDays
+                    )
+                }
+            )
+        }
     }
+    
 }
 
 #Preview {

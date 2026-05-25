@@ -1,8 +1,6 @@
 //
 //  ConfirmModalView.swift
-//  BePresent
-//
-//  Created by Rahaf Alhammadi on 28/11/1447 AH.
+//  VEIL
 //
 
 import SwiftUI
@@ -11,7 +9,7 @@ struct ConfirmModalView: View {
 
     var address: String
     var onBack: () -> Void
-    var onContinue: () -> Void
+    var onContinue: (_ placeName: String, _ activeDays: Int) -> Void
 
     // MARK: - Adjust Horizontal Positions
     var chevronOffsetX: CGFloat = -20
@@ -19,6 +17,14 @@ struct ConfirmModalView: View {
 
     @State private var placeName: String = ""
     @State private var activeDays: Double = 1
+
+    private var trimmedPlaceName: String {
+        placeName.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var canAddPlace: Bool {
+        !trimmedPlaceName.isEmpty
+    }
 
     var body: some View {
 
@@ -108,17 +114,20 @@ struct ConfirmModalView: View {
             .padding(.top, 4)
 
             // MARK: - Add Place Button
-            Button(action: onContinue) {
+            Button(action: {
+                onContinue(trimmedPlaceName, Int(activeDays))
+            }) {
 
                 Text("Add place")
                     .font(.system(size: 18, weight: .medium))
                     .foregroundColor(.white)
                     .frame(maxWidth: 150)
                     .frame(height: 58)
-                    .background(Color.black.opacity(0.92))
+                    .background(Color.black.opacity(canAddPlace ? 0.92 : 0.35))
                     .clipShape(Capsule())
                     .padding(.horizontal, 8)
             }
+            .disabled(!canAddPlace)
             .padding(.top, 6)
             .padding(.bottom, 10)
         }
@@ -141,7 +150,10 @@ struct ConfirmModalView: View {
         ConfirmModalView(
             address: "Riyadh, Saudi Arabia",
             onBack: {},
-            onContinue: {}
+            onContinue: { placeName, activeDays in
+                print(placeName)
+                print(activeDays)
+            }
         )
     }
 }

@@ -1,8 +1,6 @@
 //
 //  MapScreen.swift
-//  BePresent
-//
-//  Created by Rahaf Alhammadi on 25/11/1447 AH.
+//  VEIL
 //
 
 import SwiftUI
@@ -15,7 +13,9 @@ struct MapScreen: View {
 
     @State private var radius: CLLocationDistance = 1000
     @State private var showModal = false
-    @State private var goToNextPage = false
+    @State private var goToHomeView = false
+
+    var onPlaceAdded: (_ placeName: String, _ activeDays: Int) -> Void
 
     var body: some View {
 
@@ -65,7 +65,7 @@ struct MapScreen: View {
                 }
             }
 
-            // MARK: - Confirm Modal
+            // MARK: - Place Details Modal
             if showModal {
 
                 ConfirmModalView(
@@ -75,12 +75,18 @@ struct MapScreen: View {
                             showModal = false
                         }
                     },
-                    onContinue: {
+                    onContinue: { placeName, activeDays in
+
+                        // 1. Save the place data
+                        onPlaceAdded(placeName, activeDays)
+
+                        // 2. Hide the modal
                         withAnimation(.easeInOut) {
                             showModal = false
                         }
 
-                        goToNextPage = true
+                        // 3. Go FORWARD to HomeView, not back to Mainpage
+                        goToHomeView = true
                     }
                 )
                 .frame(
@@ -95,16 +101,21 @@ struct MapScreen: View {
         .navigationTitle("Select Location")
         .navigationBarTitleDisplayMode(.inline)
 
-        // MARK: - Navigation
-        // TODO: 
-        .navigationDestination(isPresented: $goToNextPage) {
-            Text("Next Page")
+        // MARK: - Navigate To HomeView
+        .navigationDestination(isPresented: $goToHomeView) {
+            HomeView()
+                .navigationBarBackButtonHidden(true)
         }
     }
 }
 
 #Preview {
     NavigationStack {
-        MapScreen()
+        MapScreen(
+            onPlaceAdded: { placeName, activeDays in
+                print(placeName)
+                print(activeDays)
+            }
+        )
     }
 }
