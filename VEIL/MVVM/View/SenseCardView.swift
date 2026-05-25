@@ -29,7 +29,10 @@ struct SenseCardView: View {
                 Image(systemName: sense.icon)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 70, height: 43)
+                    .frame(
+                        width: sense.iconSize.width,
+                        height: sense.iconSize.height
+                    )
                     .foregroundStyle(Color.gray)
 
                 Text(sense.title)

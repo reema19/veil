@@ -16,9 +16,6 @@ struct WatchingPlacesSectionView: View {
     private let cardWidth: CGFloat = 320
     private let cardHeight: CGFloat = 210
 
-    // Change this number if you want the side cards to show more or less.
-    // Smaller = more of the side cards visible.
-    // Bigger = less of the side cards visible.
     private let sideOffset: CGFloat = 260
 
     var body: some View {
@@ -72,12 +69,18 @@ struct WatchingPlacesSectionView: View {
     private var carouselView: some View {
         ZStack {
             ForEach(places.indices, id: \.self) { index in
-                WatchingPlaceCardView(place: places[index])
-                    .frame(width: cardWidth, height: cardHeight)
-                    .scaleEffect(scale(for: index))
-                    .opacity(opacity(for: index))
-                    .zIndex(zIndex(for: index))
-                    .offset(x: xOffset(for: index) + dragOffset)
+
+                NavigationLink {
+                    SenseSelectionView(place: places[index])
+                } label: {
+                    WatchingPlaceCardView(place: places[index])
+                        .frame(width: cardWidth, height: cardHeight)
+                }
+                .buttonStyle(.plain)
+                .scaleEffect(scale(for: index))
+                .opacity(opacity(for: index))
+                .zIndex(zIndex(for: index))
+                .offset(x: xOffset(for: index) + dragOffset)
             }
         }
         .frame(maxWidth: .infinity)
@@ -153,11 +156,9 @@ struct WatchingPlacesSectionView: View {
 
         switch position {
         case 0:
-            return 1.08      // center card bigger
-
+            return 1.08
         case -1, 1:
-            return 0.82      // side cards smaller
-
+            return 0.82
         default:
             return 0.82
         }
@@ -168,11 +169,9 @@ struct WatchingPlacesSectionView: View {
 
         switch position {
         case 0:
-            return 1.0       // center card fully visible
-
+            return 1.0
         case -1, 1:
-            return 0.55      // side cards lighter
-
+            return 0.55
         default:
             return 0
         }
