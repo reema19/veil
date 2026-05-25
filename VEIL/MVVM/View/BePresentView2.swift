@@ -9,9 +9,11 @@ import SwiftUI
 
 struct BePresentView2: View {
     private let page: OnboardingPage
+    private let onNext: () -> Void
 
-    init(page: OnboardingPage) {
+    init(page: OnboardingPage, onNext: @escaping () -> Void) {
         self.page = page
+        self.onNext = onNext
     }
 
     var body: some View {
@@ -26,32 +28,27 @@ struct BePresentView2: View {
                     subtitle: page.subtitle
                 )
 
-                Spacer().frame(height: 90)
+                Spacer().frame(height: 120)
 
-                ZStack {
-                    Image(page.imageName)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 360, height: 400)
-                        .offset(x: -10, y: 0)
-                }
+                GreenCircleStackView()
                 .offset(x: 70, y: -20)
 
-                HStack {
+                ZStack {
                     DotsIndicatorView(
                         totalPages: page.totalPages,
                         currentIndex: page.index
                     )
+                    .frame(maxWidth: .infinity, alignment: .center)
 
-                    Spacer()
+                    HStack {
+                        Spacer()
 
-                    NavigationLink("Next") {
-                        BePresentView3(
-                            page: OnboardingViewModel().pages[2]
-                        )
+                        Button("Next") {
+                            onNext()
+                        }
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(Color("TitleColor"))
                     }
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(Color("TitleColor"))
                 }
                 .padding(.horizontal, 32)
                 .padding(.bottom, 36)
@@ -62,5 +59,8 @@ struct BePresentView2: View {
 }
 
 #Preview {
-    BePresentView2(page: OnboardingViewModel().pages[1])
+    BePresentView2(
+        page: OnboardingViewModel().pages[1],
+        onNext: {}
+    )
 }

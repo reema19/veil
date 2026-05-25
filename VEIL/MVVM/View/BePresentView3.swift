@@ -10,67 +10,65 @@ import SwiftUI
 struct BePresentView3: View {
     private let page: OnboardingPage
 
-    @StateObject private var viewModel = OnboardingViewModel()
+    @ObservedObject private var viewModel: OnboardingViewModel
 
-    init(page: OnboardingPage) {
+    init(page: OnboardingPage, viewModel: OnboardingViewModel) {
         self.page = page
+        self.viewModel = viewModel
     }
 
     var body: some View {
         ZStack(alignment: .top) {
             Color("BackgroundColor").ignoresSafeArea()
 
-            ZStack {
-                Image(page.imageName)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 360, height: 400)
-                    .offset(x: 70, y: 0)
-                    .scaleEffect(viewModel.isAnimating ? 1.06 : 1.0)
-                    .offset(y: viewModel.isAnimating ? -8 : 0)
-                    .animation(
-                        .easeInOut(duration: 3)
-                            .repeatForever(autoreverses: true),
-                        value: viewModel.isAnimating
-                    )
-            }
-            .offset(x: 30, y: 40)
+            YellowCircleStackView(
+                hideDots: viewModel.hideYellowDots,
+                expandCircles: viewModel.expandYellowCircles
+            )
+            .offset(
+                x: viewModel.expandYellowCircles ? 0 : 90,
+                y: viewModel.expandYellowCircles ? 0 : 80
+            )//
 
-            VStack {
-                Spacer()
-
-                OnboardingTextBlock(
-                    title: page.title,
-                    subtitle: page.subtitle
+            if viewModel.showNameField {
+                NameEntryView(
+                    name: $viewModel.enteredName,
+                    onSubmit: {
+                        viewModel.submitName()
+                    }
                 )
+                .transition(
+                    .opacity.combined(with: .scale(scale: 0.96))
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            } else if !viewModel.hidePageThreeContent {
+                VStack {
+                    Spacer()
 
-                Spacer().frame(height: 120)
+                    OnboardingTextBlock(
+                        title: page.title,
+                        subtitle: page.subtitle
+                    )//
 
-                StartButtonView(showCentered: viewModel.showStartCentered) {
-                    viewModel.handleStart()
+                    Spacer().frame(height: 60)
+
+                    StartButtonView {
+                        viewModel.handleStart()
+                    }
+                    .frame(height: 50)
+                    .padding(.horizontal, 32)
+                    .padding(.bottom, 36)
                 }
-                .frame(height: 44)
-                .padding(.horizontal, 32)
-                .padding(.bottom, 36)
-                .animation(
-                    .spring(response: 0.6, dampingFraction: 0.75),
-                    value: viewModel.showStartCentered
-                )
+                .transition(.opacity)
             }
         }
         .navigationBarHidden(true)
-        .onAppear {
-            viewModel.startAnimations()
-        }
-        .navigationDestination(isPresented: $viewModel.goToMainpage) {
-            Mainpage()
-                .navigationBarBackButtonHidden(true)
-        }
     }
 }
 
 #Preview {
-    NavigationStack {
-        BePresentView3(page: OnboardingViewModel().pages[2])
-    }
+    BePresentView3(
+        page: OnboardingViewModel().pages[2],
+        viewModel: OnboardingViewModel()
+    )
 }
