@@ -11,8 +11,10 @@ struct PromptQuestionView: View {
     @ObservedObject var viewModel: PromptViewModel
     var onDismiss: () -> Void = {}
 
+    @Environment(\.dismiss) private var dismiss
+
     @State private var isObservationActive = false
-    @State private var seconds = 73
+    @State private var seconds = 0
 
     private var backgroundColor: Color {
         if !isObservationActive {
@@ -39,9 +41,8 @@ struct PromptQuestionView: View {
             let width = geometry.size.width
             let height = geometry.size.height
 
-            let horizontalPadding = width * 0.10
-            let headerTopPadding = height * 0.055
-            let headerGap = width * 0.055
+            let horizontalPadding = width * 0.085
+            let topPadding = height * 0.055
 
             let haloSize = min(width * 0.92, 360)
             let questionFontSize = min(max(width * 0.055, 20), 24)
@@ -55,24 +56,31 @@ struct PromptQuestionView: View {
                 VStack(spacing: 0) {
 
                     // MARK: - Header
-                    HStack(alignment: .center, spacing: headerGap) {
-                        Button(action: onDismiss) {
-                            ZStack {
-                                Circle()
-                                    .fill(.ultraThinMaterial)
-                                    .frame(width: 44, height: 44)
+                    HStack(alignment: .center, spacing: 22) {
 
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 19, weight: .medium))
-                                    .foregroundColor(Color("TitleColor").opacity(0.72))
-                            }
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundColor(Color("TitleColor"))
+                                .frame(width: 50, height: 50)
+                                .background(.ultraThinMaterial)
+                                .clipShape(Circle())
+                                .shadow(
+                                    color: .black.opacity(0.08),
+                                    radius: 12,
+                                    x: 0,
+                                    y: 6
+                                )
                         }
                         .buttonStyle(.plain)
-                        
+
                         VStack(alignment: .leading, spacing: 2) {
                             Text(viewModel.sessionTitle)
                                 .font(.custom("DMSans-Bold", size: 24))
                                 .foregroundColor(Color("TitleColor"))
+                                .lineLimit(1)
 
                             Text(viewModel.sessionSubtitle)
                                 .font(.custom("DMSans-Regular", size: 12))
@@ -82,7 +90,7 @@ struct PromptQuestionView: View {
                         Spacer()
                     }
                     .padding(.horizontal, horizontalPadding)
-                    .padding(.top, headerTopPadding)
+                    .padding(.top, topPadding)
                     .opacity(isObservationActive ? 0 : 1)
 
                     // MARK: - Section Title
@@ -104,7 +112,7 @@ struct PromptQuestionView: View {
                     .padding(.top, height * 0.045)
                     .opacity(isObservationActive ? 0 : 1)
 
-                    // MARK: - Fixed Question Area
+                    // MARK: - Question Area
                     ZStack {
                         AIHaloView(
                             size: haloSize,
@@ -130,8 +138,8 @@ struct PromptQuestionView: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: height * 0.40)
-                    .padding(.top, height * 0.055)
+                    .frame(height: height * 0.38)
+                    .padding(.top, height * 0.045)
 
                     // MARK: - Progress
                     VStack(spacing: 10) {
@@ -150,7 +158,7 @@ struct PromptQuestionView: View {
                             .foregroundColor(Color("SubtitleColor"))
                     }
                     .opacity(isObservationActive ? 0 : 1)
-                    .padding(.top, 46)
+                    .padding(.top, 34)
 
                     Spacer()
 
@@ -166,9 +174,7 @@ struct PromptQuestionView: View {
                                         .font(.custom("DMSans-Regular", size: 16))
                                 }
                                 .foregroundColor(Color("TitleColor"))
-                                .frame(width: min(width * 0.58, 234), height: 34)
-                                .background(Color.clear)
-                                .cornerRadius(40)
+                                .frame(width: min(width * 0.58, 234), height: 36)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 40)
                                         .stroke(Color("TitleColor"), lineWidth: 1)
@@ -176,7 +182,7 @@ struct PromptQuestionView: View {
                             }
                         }
 
-                        Button(action: {
+                        Button {
                             if !isObservationActive {
                                 viewModel.stayWithThis()
 
@@ -184,13 +190,13 @@ struct PromptQuestionView: View {
                                     isObservationActive = true
                                 }
                             }
-                        }) {
+                        } label: {
                             Text(isObservationActive
                                  ? (viewModel.currentPrompt.sense == .sound ? "Tap to record" : "Tap to capture")
                                  : "Stay with this")
                                 .font(.custom("DMSans-Regular", size: 16))
                                 .foregroundColor(.white)
-                                .frame(width: min(width * 0.58, 234), height: 34)
+                                .frame(width: min(width * 0.58, 234), height: 36)
                                 .background(Color.black)
                                 .cornerRadius(40)
                         }
@@ -199,8 +205,22 @@ struct PromptQuestionView: View {
                 }
             }
         }
+        .navigationBarBackButtonHidden(true)
     }
 }
+#Preview {
+    PromptQuestionView(
+        viewModel: PromptViewModel(
+            sectionTitle: "Stay with what you see",
+            sectionSubtitle: "You don't need to capture everything.\none thing is enough.",
+            prompts: [
+                SensePrompt(question: "What sound belongs to this place?", sense: .sight),
+                SensePrompt(question: "What detail would disappear if you blinked?", sense: .sight)
+            ]
+        )
+    )
+}
+
 #Preview {
     PromptQuestionView(
         viewModel: PromptViewModel(

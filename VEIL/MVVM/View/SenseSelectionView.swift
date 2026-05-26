@@ -68,22 +68,23 @@ struct SenseSelectionView: View {
                 // MARK: - Cards
                 VStack(spacing: 46) {
 
-                    Button(action: {
-                        print("Sight tapped")
-                    }) {
+                    NavigationLink {
+                        sightquestions()
+                    } label: {
                         SenseCardView(sense: .sight)
                     }
                     .buttonStyle(.plain)
 
-                    Button(action: {
-                        print("Sound tapped")
-                    }) {
+                    NavigationLink {
+                        soundquestions()
+                    } label: {
                         SenseCardView(sense: .sound)
                     }
                     .buttonStyle(.plain)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.top, 58)
+                
 
                 Spacer()
             }
