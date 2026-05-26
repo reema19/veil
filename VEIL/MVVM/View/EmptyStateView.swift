@@ -17,9 +17,9 @@ struct EmptyStateView: View {
 
             // MARK: - Animated Location Circles
             ZStack {
-
-                Circle()
-                    .fill(Color("OuterCircle3").opacity(0.5))
+                Image("OuterCircle3")
+                    .resizable()
+                    .scaledToFit()
                     .frame(width: 93, height: 93)
                     .scaleEffect(pulseAnimation ? 1.06 : 1.0)
                     .animation(
@@ -27,10 +27,10 @@ struct EmptyStateView: View {
                             .repeatForever(autoreverses: true),
                         value: pulseAnimation
                     )
-                    .glassEffect()
 
-                Circle()
-                    .fill(Color("MiddleCircle3").opacity(0.7))
+                Image("MiddleCircle3")
+                    .resizable()
+                    .scaledToFit()
                     .frame(width: 70, height: 70)
                     .scaleEffect(pulseAnimation ? 1.04 : 1.0)
                     .animation(
@@ -39,13 +39,11 @@ struct EmptyStateView: View {
                             .repeatForever(autoreverses: true),
                         value: pulseAnimation
                     )
-                    .glassEffect()
-                    .overlay(
-                        Image(systemName: "location")
-                            .font(.system(size: 30))
-                            .foregroundColor(Color("TitleColor").opacity(0.9))
-                            .bold(true)
-                    )
+
+                Image(systemName: "location")
+                    .font(.system(size: 30))
+                    .foregroundColor(Color("TitleColor").opacity(0.9))
+                    .bold(true)
             }
 
             Spacer().frame(height: 16)

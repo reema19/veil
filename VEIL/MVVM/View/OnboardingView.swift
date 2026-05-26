@@ -10,26 +10,36 @@ import SwiftUI
 struct OnboardingView: View {
     @StateObject private var viewModel = OnboardingViewModel()
 
+    // MARK: - Mainpage Transition Control
+
+    private let mainpageFadeDuration: Double = 2.0
+
     var body: some View {
         NavigationStack {
             ZStack {
                 Color("BackgroundColor")
                     .ignoresSafeArea()
 
-                currentOnboardingPage
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .transition(
-                        .asymmetric(
-                            insertion: .opacity,
-                            removal: .opacity
+                if viewModel.goToMainpage {
+                    Mainpage()
+                        .navigationBarBackButtonHidden(true)
+                        .transition(.opacity)
+                        .zIndex(2)
+                } else {
+                    currentOnboardingPage
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .transition(
+                            .asymmetric(
+                                insertion: .opacity,
+                                removal: .opacity
+                            )
                         )
-                    )
+                        .zIndex(1)
+                }
             }
+            .animation(.easeInOut(duration: mainpageFadeDuration), value: viewModel.goToMainpage)
+            .animation(.easeInOut(duration: 0.45), value: viewModel.currentIndex)
             .navigationBarHidden(true)
-            .navigationDestination(isPresented: $viewModel.goToMainpage) {
-                Mainpage()
-                    .navigationBarBackButtonHidden(true)
-            }
         }
     }
 

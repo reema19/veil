@@ -15,6 +15,10 @@ struct Mainpage: View {
 
     @State private var goToMapScreen = false
 
+    @State private var showHeader = false
+    @State private var showEmptyState = false
+    @State private var showAddButton = false
+
     var body: some View {
 
         ZStack {
@@ -39,22 +43,22 @@ struct Mainpage: View {
                 .padding(.horizontal, 38)
                 .padding(.top, 20)
                 .padding(.bottom, -8)
+                .opacity(showHeader ? 1 : 0)
+                .offset(y: showHeader ? 0 : 10)
 
                 Spacer()
 
                 // MARK: - Empty State
                 EmptyStateView(pulseAnimation: vm.pulseAnimation)
+                    .opacity(showEmptyState ? 1 : 0)
+                    .scaleEffect(showEmptyState ? 1 : 0.96)
+                    .offset(y: showEmptyState ? 0 : 14)
 
                 Spacer()
 
                 // MARK: - Add Place Button
                 Button(action: {
-
-                    withAnimation(.spring(response: 0.35,
-                                          dampingFraction: 0.85)) {
-                        vm.showLocationSheet = true
-                    }
-
+                    handleAddPlaceTap()
                 }) {
 
                     HStack(spacing: 8) {
@@ -69,6 +73,8 @@ struct Mainpage: View {
                 }
                 .padding(.horizontal, 28)
                 .padding(.bottom, 24)
+                .opacity(showAddButton ? 1 : 0)
+                .offset(y: showAddButton ? 0 : 14)
             }
 
             // MARK: - Sheet Overlay
@@ -89,14 +95,7 @@ struct Mainpage: View {
                         }
 
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-
-                            locationPermissionViewModel.checkCurrentPermission()
-
-                            if locationPermissionViewModel.permissionGranted {
-                                goToMapScreen = true
-                            } else {
-                                locationPermissionViewModel.requestPermission()
-                            }
+                            checkPermissionAndOpenMap()
                         }
                     }
                 )
@@ -105,6 +104,7 @@ struct Mainpage: View {
         .onAppear {
             vm.startPulse()
             homeViewModel.loadSavedPlaces()
+            startEntranceAnimation()
         }
         .navigationDestination(isPresented: $goToMapScreen) {
             MapScreen(
@@ -119,6 +119,51 @@ struct Mainpage: View {
         .onChange(of: locationPermissionViewModel.permissionGranted) { oldValue, newValue in
             if newValue {
                 goToMapScreen = true
+            }
+        }
+    }
+
+    private func handleAddPlaceTap() {
+        homeViewModel.loadSavedPlaces()
+
+        if homeViewModel.places.isEmpty {
+            withAnimation(.spring(response: 0.35,
+                                  dampingFraction: 0.85)) {
+                vm.showLocationSheet = true
+            }
+        } else {
+            checkPermissionAndOpenMap()
+        }
+    }
+
+    private func checkPermissionAndOpenMap() {
+        locationPermissionViewModel.checkCurrentPermission()
+
+        if locationPermissionViewModel.permissionGranted {
+            goToMapScreen = true
+        } else {
+            locationPermissionViewModel.requestPermission()
+        }
+    }
+
+    private func startEntranceAnimation() {
+        showHeader = false
+        showEmptyState = false
+        showAddButton = false
+
+        withAnimation(.easeInOut(duration: 0.55)) {
+            showHeader = true
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
+            withAnimation(.spring(response: 0.75, dampingFraction: 0.9)) {
+                showEmptyState = true
+            }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.34) {
+            withAnimation(.easeInOut(duration: 0.55)) {
+                showAddButton = true
             }
         }
     }

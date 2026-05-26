@@ -38,6 +38,7 @@ final class OnboardingViewModel: ObservableObject {
 
     @Published var currentIndex: Int = 0
     @Published var hidePageThreeContent: Bool = false
+
     // MARK: - Name Entry State
 
     @Published var enteredName: String = ""
@@ -57,7 +58,10 @@ final class OnboardingViewModel: ObservableObject {
 
     func goToNextPage() {
         guard currentIndex < pages.count - 1 else { return }
-        currentIndex += 1
+
+        withAnimation(.easeInOut(duration: 0.45)) {
+            currentIndex += 1
+        }
     }
 
     func handleStart() {
