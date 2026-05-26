@@ -9,18 +9,21 @@ import SwiftUI
 
 struct soundquestions: View {
     
-    @StateObject private var viewModel = PromptViewModel(
-        sectionTitle: "Stay with what you hear",
-        sectionSubtitle: "One layer of the place is enough",
-        prompts: [
-            SensePrompt(question: "What sound would you keep from here?", sense: .sound),
-            SensePrompt(question: "What sound fades the moment you notice it?", sense: .sound)
-        ]
-    )
+    let place: WatchingPlace
     
     var body: some View {
-        PromptQuestionView(viewModel: viewModel)
+        PromptQuestionView(
+            viewModel: PromptViewModel(
+                sessionTitle: place.title,
+                sessionSubtitle: "Day \(place.currentDay) of \(place.totalDays)",
+                sectionTitle: "Stay with what you hear",
+                sectionSubtitle: "One layer of the place is enough.",
+                prompts: [
+                    SensePrompt(question: "What sound would you keep from here?", sense: .sound),
+                    SensePrompt(question: "What sound fades the moment you notice it?", sense: .sound)
+                ]
+            )
+        )
     }
 }
-
-#Preview { soundquestions() }
+// #Preview { soundquestions() }

@@ -8,18 +8,22 @@ import SwiftUI
 
 struct sightquestions: View {
     
-    @StateObject private var viewModel = PromptViewModel(
-        sectionTitle: "Stay with what you see",
-        sectionSubtitle: "You don't need to capture everything.\none thing is enough.",
-        prompts: [
-            SensePrompt(question: "What sound belongs to this place?", sense: .sight),
-            SensePrompt(question: "What detail would disappear if you blinked?", sense: .sight)
-        ]
-    )
+    let place: WatchingPlace
     
     var body: some View {
-        PromptQuestionView(viewModel: viewModel)
+        PromptQuestionView(
+            viewModel: PromptViewModel(
+                sessionTitle: place.title,
+                sessionSubtitle: "Day \(place.currentDay) of \(place.totalDays)",
+                sectionTitle: "Stay with what you see",
+                sectionSubtitle: "You don't need to capture everything.\nOne thing is enough.",
+                prompts: [
+                    SensePrompt(question: "What detail would you keep from here?", sense: .sight),
+                    SensePrompt(question: "What would disappear if you blinked?", sense: .sight)
+                ]
+            )
+        )
     }
 }
 
-#Preview { sightquestions() }
+// #Preview { sightquestions() }
