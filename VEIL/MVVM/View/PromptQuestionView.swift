@@ -41,8 +41,8 @@ struct PromptQuestionView: View {
             let width = geometry.size.width
             let height = geometry.size.height
 
-            let headerHorizontalPadding: CGFloat = 18
-            let contentHorizontalPadding: CGFloat = 42
+            let horizontalPadding = width * 0.085
+            let topPadding = height * 0.055
 
             let haloSize = min(width * 0.92, 360)
             let questionFontSize = min(max(width * 0.055, 20), 24)
@@ -56,7 +56,7 @@ struct PromptQuestionView: View {
                 VStack(spacing: 0) {
 
                     // MARK: - Header
-                    HStack(spacing: 12) {
+                    HStack(alignment: .center, spacing: 22) {
 
                         Button {
                             dismiss()
@@ -89,8 +89,8 @@ struct PromptQuestionView: View {
 
                         Spacer()
                     }
-                    .padding(.horizontal, headerHorizontalPadding)
-                    .padding(.top, 20)
+                    .padding(.horizontal, horizontalPadding)
+                    .padding(.top, topPadding)
                     .opacity(isObservationActive ? 0 : 1)
 
                     // MARK: - Section Title
@@ -108,8 +108,8 @@ struct PromptQuestionView: View {
 
                         Spacer()
                     }
-                    .padding(.horizontal, contentHorizontalPadding)
-                    .padding(.top, 52)
+                    .padding(.horizontal, horizontalPadding)
+                    .padding(.top, height * 0.045)
                     .opacity(isObservationActive ? 0 : 1)
 
                     // MARK: - Question Area
@@ -208,6 +208,19 @@ struct PromptQuestionView: View {
         .navigationBarBackButtonHidden(true)
     }
 }
+#Preview {
+    PromptQuestionView(
+        viewModel: PromptViewModel(
+            sectionTitle: "Stay with what you see",
+            sectionSubtitle: "You don't need to capture everything.\none thing is enough.",
+            prompts: [
+                SensePrompt(question: "What sound belongs to this place?", sense: .sight),
+                SensePrompt(question: "What detail would disappear if you blinked?", sense: .sight)
+            ]
+        )
+    )
+}
+
 #Preview {
     PromptQuestionView(
         viewModel: PromptViewModel(
