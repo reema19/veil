@@ -72,9 +72,11 @@ struct HomeView: View {
             )
         }
     }
-    
 }
 
 #Preview {
-    HomeView()
+    NavigationStack {
+        HomeView()
+    }
 }
+////

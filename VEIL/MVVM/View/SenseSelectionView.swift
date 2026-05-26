@@ -2,13 +2,6 @@
 //  SenseSelectionView.swift
 //  VEIL
 //
-//  Created by Rahaf Alhammadi on 08/12/1447 AH.
-//
-
-//
-//  SenseSelectionView.swift
-//  VEIL
-//
 
 import SwiftUI
 
@@ -69,14 +62,14 @@ struct SenseSelectionView: View {
                 VStack(spacing: 46) {
 
                     NavigationLink {
-                        sightquestions()
+                        sightquestions(place: place)
                     } label: {
                         SenseCardView(sense: .sight)
                     }
                     .buttonStyle(.plain)
 
                     NavigationLink {
-                        soundquestions()
+                        soundquestions(place: place)
                     } label: {
                         SenseCardView(sense: .sound)
                     }
@@ -84,7 +77,6 @@ struct SenseSelectionView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.top, 58)
-                
 
                 Spacer()
             }
