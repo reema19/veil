@@ -7,11 +7,12 @@
 import AVFoundation
 import UIKit
 
-// مسؤول فقط عن التعامل مع AVFoundation
 class CameraService: NSObject {
     let session = AVCaptureSession()
     private let output = AVCapturePhotoOutput()
     var onPhotoCaptured: ((UIImage) -> Void)?
+
+    private var flashMode: AVCaptureDevice.FlashMode = .off
 
     func startSession() {
         guard !session.isRunning else { return }
@@ -23,12 +24,17 @@ class CameraService: NSObject {
                 let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
                 let input = try? AVCaptureDeviceInput(device: device),
                 self.session.canAddInput(input)
-            else { self.session.commitConfiguration(); return }
+            else {
+                self.session.commitConfiguration()
+                return
+            }
 
             self.session.addInput(input)
+
             if self.session.canAddOutput(self.output) {
                 self.session.addOutput(self.output)
             }
+
             self.session.commitConfiguration()
             self.session.startRunning()
         }
@@ -36,20 +42,34 @@ class CameraService: NSObject {
 
     func stopSession() {
         DispatchQueue.global(qos: .userInitiated).async {
-            if self.session.isRunning { self.session.stopRunning() }
+            if self.session.isRunning {
+                self.session.stopRunning()
+            }
         }
     }
 
     func setZoom(_ level: ZoomLevel) {
         guard let device = (session.inputs.first as? AVCaptureDeviceInput)?.device else { return }
+
         try? device.lockForConfiguration()
-        device.videoZoomFactor = max(device.minAvailableVideoZoomFactor,
-                                     min(level.factor, device.maxAvailableVideoZoomFactor))
+        device.videoZoomFactor = max(
+            device.minAvailableVideoZoomFactor,
+            min(level.factor, device.maxAvailableVideoZoomFactor)
+        )
         device.unlockForConfiguration()
+    }
+
+    func setFlashEnabled(_ isEnabled: Bool) {
+        flashMode = isEnabled ? .on : .off
     }
 
     func capturePhoto() {
         let settings = AVCapturePhotoSettings()
+
+        if output.supportedFlashModes.contains(flashMode) {
+            settings.flashMode = flashMode
+        }
+
         output.capturePhoto(with: settings, delegate: self)
     }
 }
@@ -61,6 +81,7 @@ extension CameraService: AVCapturePhotoCaptureDelegate {
         guard error == nil,
               let data = photo.fileDataRepresentation(),
               let image = UIImage(data: data) else { return }
+
         DispatchQueue.main.async {
             self.onPhotoCaptured?(image)
         }

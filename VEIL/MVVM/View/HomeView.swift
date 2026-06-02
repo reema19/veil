@@ -4,12 +4,34 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct HomeView: View {
 
-    @StateObject private var viewModel = HomeViewModel()
+    @Environment(\.modelContext) private var modelContext
+
+    @Query(
+        filter: #Predicate<Place> { place in
+            place.deletedAt == nil && place.statusRawValue == "active"
+        },
+        sort: \Place.createdAt,
+        order: .reverse
+    )
+    private var activePlaces: [Place]
+
     @State private var selectedTab: Int = 0
     @State private var goToMapScreen = false
+
+    private let lifecycleService = PlaceLifecycleService()
+
+    private var totalPresenceTime: String {
+        let totalSeconds = activePlaces.reduce(0) { $0 + $1.totalPresenceSeconds }
+        return formatDuration(totalSeconds)
+    }
+
+    private var displayName: String {
+        UserDefaults.standard.string(forKey: "user_name") ?? "there"
+    }
 
     var body: some View {
         ZStack {
@@ -21,7 +43,7 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 26) {
 
                     HomeHeaderView(
-                        userName: viewModel.userName,
+                        userName: displayName.isEmpty ? "there" : displayName,
                         onProfileTap: {
                             selectedTab = 2
                         }
@@ -38,11 +60,11 @@ struct HomeView: View {
                     }
 
                     PresenceSummaryPlaceholderView(
-                        totalTime: viewModel.totalPresenceTime
+                        totalTime: totalPresenceTime
                     )
 
                     WatchingPlacesSectionView(
-                        places: viewModel.places,
+                        places: activePlaces,
                         onAddPlaceTap: {
                             goToMapScreen = true
                         }
@@ -59,24 +81,65 @@ struct HomeView: View {
                 .padding(.bottom, 8)
         }
         .onAppear {
-            viewModel.loadSavedPlaces()
+            lifecycleService.updateExpiredPlaces(activePlaces, context: modelContext)
         }
         .navigationDestination(isPresented: $goToMapScreen) {
             MapScreen(
-                onPlaceAdded: { placeName, activeDays in
-                    viewModel.addPlace(
-                        title: placeName,
-                        totalDays: activeDays
+                onPlaceAdded: { placeName, activeDays, latitude, longitude in
+                    addPlace(
+                        name: placeName,
+                        activeDays: activeDays,
+                        latitude: latitude,
+                        longitude: longitude
                     )
                 }
             )
         }
+    }
+
+    private func addPlace(
+        name: String,
+        activeDays: Int,
+        latitude: Double,
+        longitude: Double
+    ) {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { return }
+
+        let safeActiveDays = min(max(activeDays, 1), 7)
+
+        let place = Place(
+            name: trimmedName,
+            latitude: latitude,
+            longitude: longitude,
+            activeDays: safeActiveDays
+        )
+
+        modelContext.insert(place)
+
+        do {
+            try modelContext.save()
+        } catch {
+            print("Failed to save place:", error)
+        }
+    }
+
+    private func formatDuration(_ seconds: Int) -> String {
+        let hours = seconds / 3600
+        let minutes = (seconds % 3600) / 60
+        let remainingSeconds = seconds % 60
+
+        return String(format: "%02d:%02d:%02d", hours, minutes, remainingSeconds)
     }
 }
 
 #Preview {
     NavigationStack {
         HomeView()
+            .modelContainer(for: [
+                LocalProfile.self,
+                Place.self,
+                PlaceObservation.self
+            ], inMemory: true)
     }
 }
-////

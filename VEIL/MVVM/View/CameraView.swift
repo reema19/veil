@@ -8,68 +8,116 @@ import SwiftUI
 import AVFoundation
 
 struct CameraView: View {
-    @Environment(\.dismiss) var dismiss
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = CameraViewModel()
 
+    let draft: ObservationDraft?
+
+    init(draft: ObservationDraft? = nil) {
+        self.draft = draft
+    }
+
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            Color(red: 0.94, green: 0.94, blue: 0.91).ignoresSafeArea()
+        GeometryReader { geometry in
+            let width = geometry.size.width
+            let height = geometry.size.height
 
-            VStack(spacing: 0) {
-                // Close button
-                HStack {
-                    Button { dismiss() } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.black)
-                            .frame(width: 36, height: 36)
-                            .background(.white.opacity(0.55))
-                            .clipShape(Circle())
+            let cameraSize = min(width - 56, height * 0.43)
+
+            ZStack {
+                Color(hex: "F4F4E8")
+                    .ignoresSafeArea()
+
+                VStack(spacing: 0) {
+
+                    HStack {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundColor(.black)
+                                .frame(width: 50, height: 50)
+                                .background(.ultraThinMaterial)
+                                .clipShape(Circle())
+                                .shadow(
+                                    color: .black.opacity(0.08),
+                                    radius: 12,
+                                    x: 0,
+                                    y: 6
+                                )
+                        }
+                        .buttonStyle(.plain)
+
+                        Spacer()
                     }
-                    Spacer()
+                    .padding(.horizontal, 24)
+                    .padding(.top, 20)
+
+                    Spacer(minLength: 46)
+
+                    cameraContent
+                        .frame(width: cameraSize, height: cameraSize)
+                        .clipShape(RoundedRectangle(cornerRadius: 42, style: .continuous))
+
+                    Text("Capture what held your attention.")
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundColor(Color("SubtitleColor"))
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 28)
+
+                    Spacer(minLength: 26)
+
+                    ShutterButton {
+                        viewModel.capturePhoto()
+                    }
+                    .disabled(viewModel.cameraPermission != .authorized)
+                    .opacity(viewModel.cameraPermission == .authorized ? 1 : 0.45)
+
+                    Spacer(minLength: 48)
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 16)
 
-                Spacer()
-
-                switch viewModel.cameraPermission {
-                case .authorized:
-                    ViewfinderView(viewModel: viewModel)
-                        .padding(.horizontal, 20)
-                case .denied, .restricted:
-                    PermissionDeniedView()
-                        .padding(.horizontal, 20)
-                default:
-                    RoundedRectangle(cornerRadius: 36)
-                        .fill(Color(white: 0.847))
-                        .aspectRatio(1, contentMode: .fit)
-                        .padding(.horizontal, 20)
-                }
-
-                Text("Capture what held your attention.")
-                    .font(.system(size: 16))
-                    .foregroundColor(Color(white: 0.48))
-                    .padding(.top, 22)
-                    .padding(.bottom, 8)
-
-                ShutterButton {
-                    viewModel.capturePhoto()
-                }
-                .disabled(viewModel.cameraPermission != .authorized)
-                .opacity(viewModel.cameraPermission == .authorized ? 1 : 0.4)
-                .padding(.vertical, 60)
-                .padding(.bottom, 12)
-            }
-
-            if let photo = viewModel.capturedImage {
-                CapturedPhotoView(image: photo) {
-                    viewModel.dismissCapturedPhoto()
+                if let photo = viewModel.capturedImage {
+                    CapturedPhotoView(
+                        image: photo,
+                        onDismiss: {
+                            viewModel.dismissCapturedPhoto()
+                        },
+                        onSave: {
+                            print("Save photo later")
+                        }
+                    )
+                    .zIndex(2)
                 }
             }
         }
-        .onAppear { viewModel.requestCameraPermission() }
-        .onDisappear { viewModel.stopSession() }
+        .navigationBarBackButtonHidden(true)
+        .onAppear {
+            viewModel.requestCameraPermission()
+        }
+        .onDisappear {
+            viewModel.stopSession()
+        }
+    }
+
+    @ViewBuilder
+    private var cameraContent: some View {
+        switch viewModel.cameraPermission {
+        case .authorized:
+            ViewfinderView(viewModel: viewModel)
+
+        case .denied, .restricted:
+            PermissionDeniedView()
+
+        default:
+            RoundedRectangle(cornerRadius: 42, style: .continuous)
+                .fill(Color(red: 0.84, green: 0.84, blue: 0.80))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 42, style: .continuous)
+                        .stroke(Color.white.opacity(0.38), lineWidth: 1.2)
+                        .padding(68)
+                )
+        }
     }
 }
 

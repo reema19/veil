@@ -13,9 +13,9 @@ struct MapScreen: View {
 
     @State private var radius: CLLocationDistance = 1000
     @State private var showModal = false
-    @State private var goToHomeView = false
+    
 
-    var onPlaceAdded: (_ placeName: String, _ activeDays: Int) -> Void
+    var onPlaceAdded: (_ placeName: String, _ activeDays: Int, _ latitude: Double, _ longitude: Double) -> Void
 
     var body: some View {
 
@@ -77,16 +77,14 @@ struct MapScreen: View {
                     },
                     onContinue: { placeName, activeDays in
 
-                        // 1. Save the place data
-                        onPlaceAdded(placeName, activeDays)
+                        let coordinate = viewModel.region.center
 
-                        // 2. Hide the modal
-                        withAnimation(.easeInOut) {
-                            showModal = false
-                        }
-
-                        // 3. Go FORWARD to HomeView, not back to Mainpage
-                        goToHomeView = true
+                        onPlaceAdded(
+                            placeName,
+                            activeDays,
+                            coordinate.latitude,
+                            coordinate.longitude
+                        )
                     }
                 )
                 .frame(
@@ -102,19 +100,18 @@ struct MapScreen: View {
         .navigationBarTitleDisplayMode(.inline)
 
         // MARK: - Navigate To HomeView
-        .navigationDestination(isPresented: $goToHomeView) {
-            HomeView()
-                .navigationBarBackButtonHidden(true)
-        }
+        
     }
 }
 
 #Preview {
     NavigationStack {
         MapScreen(
-            onPlaceAdded: { placeName, activeDays in
+            onPlaceAdded: { placeName, activeDays, latitude, longitude in
                 print(placeName)
                 print(activeDays)
+                print(latitude)
+                print(longitude)
             }
         )
     }

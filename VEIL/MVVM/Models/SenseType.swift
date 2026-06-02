@@ -1,5 +1,5 @@
 //
-//  Sense.swift
+//  SenseType.swift
 //  VEIL
 //
 //  Created by Ghady Al Omar on 06/12/1447 AH.
@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-enum SenseType: CaseIterable {
+enum SenseType: String, Codable, CaseIterable {
     case sight
     case sound
 

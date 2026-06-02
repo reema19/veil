@@ -7,7 +7,7 @@ import SwiftUI
 
 struct WatchingPlaceCardView: View {
 
-    let place: WatchingPlace
+    let place: Place
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -16,21 +16,13 @@ struct WatchingPlaceCardView: View {
 
             VStack(alignment: .leading, spacing: 8) {
 
-                /*HStack {
-                    Spacer()
-
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(Color("SubtitleColor"))
-                }*/
-
                 Spacer()
 
-                Text(place.title)
+                Text(place.name)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(Color("TitleColor"))
 
-                Text("Day \(place.currentDay) of \(place.totalDays) · in observation")
+                Text("Day \(place.currentDay) of \(place.activeDays) · in observation")
                     .font(.system(size: 12, weight: .regular))
                     .foregroundColor(Color("SubtitleColor"))
             }
@@ -45,12 +37,12 @@ struct WatchingPlaceCardView: View {
         ZStack(alignment: .topLeading) {
 
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(place.tint.opacity(0.95))
+                .fill(placeTint.opacity(0.95))
                 .frame(height: 135)
                 .offset(y: 28)
 
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(place.tint)
+                .fill(placeTint)
                 .frame(width: 96, height: 42)
                 .offset(x: 0, y: 12)
 
@@ -62,11 +54,22 @@ struct WatchingPlaceCardView: View {
 
             RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .stroke(
-                    place.tint.opacity(0.95),
+                    placeTint.opacity(0.95),
                     lineWidth: 1.2
                 )
                 .frame(height: 135)
                 .offset(y: 28)
         }
+    }
+
+    private var placeTint: Color {
+        let colors: [Color] = [
+            Color(red: 0.93, green: 0.92, blue: 0.58),
+            Color(red: 0.82, green: 0.88, blue: 0.82),
+            Color(red: 0.83, green: 0.86, blue: 0.92)
+        ]
+
+        let index = abs(place.id.hashValue) % colors.count
+        return colors[index]
     }
 }

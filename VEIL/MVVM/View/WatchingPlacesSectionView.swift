@@ -7,7 +7,7 @@ import SwiftUI
 
 struct WatchingPlacesSectionView: View {
 
-    let places: [WatchingPlace]
+    let places: [Place]
     var onAddPlaceTap: () -> Void
 
     @State private var selectedIndex: Int = 0

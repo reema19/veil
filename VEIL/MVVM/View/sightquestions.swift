@@ -7,14 +7,15 @@
 import SwiftUI
 
 struct sightquestions: View {
-    
-    let place: WatchingPlace
-    
+
+    let place: Place
+
     var body: some View {
         PromptQuestionView(
+            place: place,
             viewModel: PromptViewModel(
-                sessionTitle: place.title,
-                sessionSubtitle: "Day \(place.currentDay) of \(place.totalDays)",
+                sessionTitle: place.name,
+                sessionSubtitle: "Day \(place.currentDay) of \(place.activeDays)",
                 sectionTitle: "Stay with what you see",
                 sectionSubtitle: "You don't need to capture everything.\nOne thing is enough.",
                 prompts: [
@@ -25,5 +26,3 @@ struct sightquestions: View {
         )
     }
 }
-
-// #Preview { sightquestions() }

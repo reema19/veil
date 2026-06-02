@@ -7,7 +7,7 @@ import SwiftUI
 
 struct SenseSelectionView: View {
 
-    let place: WatchingPlace
+    let place: Place
 
     @Environment(\.dismiss) private var dismiss
 
@@ -40,7 +40,7 @@ struct SenseSelectionView: View {
                             )
                     }
 
-                    Text(place.title)
+                    Text(place.name)
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(Color("TitleColor"))
                         .lineLimit(1)
@@ -85,7 +85,7 @@ struct SenseSelectionView: View {
     }
 }
 
-#Preview {
+/*#Preview {
     NavigationStack {
         SenseSelectionView(
             place: WatchingPlace(
@@ -96,4 +96,4 @@ struct SenseSelectionView: View {
             )
         )
     }
-}
+}*/

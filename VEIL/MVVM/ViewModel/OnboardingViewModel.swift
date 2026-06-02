@@ -6,6 +6,7 @@
 import SwiftUI
 import Combine
 
+
 final class OnboardingViewModel: ObservableObject {
 
     // MARK: - Pages Data
@@ -50,9 +51,13 @@ final class OnboardingViewModel: ObservableObject {
 
     @Published var goToMainpage: Bool = false
 
+
     // MARK: - Stored User Name
 
     @AppStorage("user_name") var savedUserName: String = ""
+
+    @AppStorage("has_completed_onboarding")
+    var hasCompletedOnboarding: Bool = false
 
     // MARK: - Actions
 
@@ -89,6 +94,7 @@ final class OnboardingViewModel: ObservableObject {
         guard !trimmedName.isEmpty else { return }
 
         savedUserName = trimmedName
+        hasCompletedOnboarding = true
         goToMainpage = true
     }
 }

@@ -8,14 +8,15 @@
 import SwiftUI
 
 struct soundquestions: View {
-    
-    let place: WatchingPlace
-    
+
+    let place: Place
+
     var body: some View {
         PromptQuestionView(
+            place: place,
             viewModel: PromptViewModel(
-                sessionTitle: place.title,
-                sessionSubtitle: "Day \(place.currentDay) of \(place.totalDays)",
+                sessionTitle: place.name,
+                sessionSubtitle: "Day \(place.currentDay) of \(place.activeDays)",
                 sectionTitle: "Stay with what you hear",
                 sectionSubtitle: "One layer of the place is enough.",
                 prompts: [
@@ -26,4 +27,3 @@ struct soundquestions: View {
         )
     }
 }
-// #Preview { soundquestions() }

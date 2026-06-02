@@ -8,6 +8,7 @@ import SwiftUI
 
 struct PromptQuestionView: View {
     
+    let place: Place
     @ObservedObject var viewModel: PromptViewModel
     var onDismiss: () -> Void = {}
 
@@ -15,6 +16,9 @@ struct PromptQuestionView: View {
 
     @State private var isObservationActive = false
     @State private var seconds = 0
+    @State private var timer: Timer?
+    @State private var cameraDraft: ObservationDraft?
+    @State private var audioDraft: ObservationDraft?
 
     private var backgroundColor: Color {
         if !isObservationActive {
@@ -189,6 +193,26 @@ struct PromptQuestionView: View {
                                 withAnimation(.easeInOut(duration: 0.65)) {
                                     isObservationActive = true
                                 }
+
+                                startTimer()
+                            } else {
+                                let draft = ObservationDraft(
+                                    placeID: place.id,
+                                    placeTitle: place.name,
+                                    placeCurrentDay: place.currentDay,
+                                    placeTotalDays: place.activeDays,
+                                    sense: viewModel.currentPrompt.sense,
+                                    prompt: viewModel.currentPrompt.question,
+                                    durationSeconds: seconds
+                                )
+
+                                switch viewModel.currentPrompt.sense {
+                                case .sight:
+                                    cameraDraft = draft
+
+                                case .sound:
+                                    audioDraft = draft
+                                }
                             }
                         } label: {
                             Text(isObservationActive
@@ -206,17 +230,47 @@ struct PromptQuestionView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .navigationDestination(item: $cameraDraft) { draft in
+            CameraView(draft: draft)
+        }
+        .navigationDestination(item: $audioDraft) { draft in
+            AudioRecorderView(draft: draft)
+        }
+        .onDisappear {
+            stopTimer()
+        }
+    }
+
+    private func startTimer() {
+        timer?.invalidate()
+        seconds = 0
+
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            seconds += 1
+        }
+    }
+
+    private func stopTimer() {
+        timer?.invalidate()
+        timer = nil
     }
 }
-#Preview {
+/*#Preview {
     PromptQuestionView(
+        place: WatchingPlace(
+            title: "Morning café",
+            currentDay: 4,
+            totalDays: 7,
+            tint: Color(red: 0.93, green: 0.92, blue: 0.58)
+        ),
         viewModel: PromptViewModel(
             sectionTitle: "Stay with what you see",
             sectionSubtitle: "You don't need to capture everything.\none thing is enough.",
             prompts: [
-                SensePrompt(question: "What sound belongs to this place?", sense: .sight),
-                SensePrompt(question: "What detail would disappear if you blinked?", sense: .sight)
+                SensePrompt(question: "What detail would you keep from here?", sense: .sight),
+                SensePrompt(question: "What would disappear if you blinked?", sense: .sight)
             ]
         )
     )
 }
+*/
