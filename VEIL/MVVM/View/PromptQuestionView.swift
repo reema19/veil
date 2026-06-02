@@ -5,6 +5,7 @@
 //  Created by Ghady Al Omar on 06/12/1447 AH.
 //
 import SwiftUI
+import AVFoundation
 
 struct PromptQuestionView: View {
     
@@ -19,6 +20,7 @@ struct PromptQuestionView: View {
     @State private var timer: Timer?
     @State private var cameraDraft: ObservationDraft?
     @State private var audioDraft: ObservationDraft?
+    @State private var showMicrophonePermissionAlert = false
 
     private var backgroundColor: Color {
         if !isObservationActive {
@@ -211,7 +213,9 @@ struct PromptQuestionView: View {
                                     cameraDraft = draft
 
                                 case .sound:
-                                    audioDraft = draft
+                                    requestMicrophonePermission {
+                                        audioDraft = draft
+                                    }
                                 }
                             }
                         } label: {
@@ -236,6 +240,11 @@ struct PromptQuestionView: View {
         .navigationDestination(item: $audioDraft) { draft in
             AudioRecorderView(draft: draft)
         }
+        .alert("Microphone Access Needed", isPresented: $showMicrophonePermissionAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Please allow microphone access from Settings so you can record what you hear.")
+        }
         .onDisappear {
             stopTimer()
         }
@@ -253,6 +262,18 @@ struct PromptQuestionView: View {
     private func stopTimer() {
         timer?.invalidate()
         timer = nil
+    }
+
+    private func requestMicrophonePermission(onGranted: @escaping () -> Void) {
+        AVAudioSession.sharedInstance().requestRecordPermission { granted in
+            DispatchQueue.main.async {
+                if granted {
+                    onGranted()
+                } else {
+                    showMicrophonePermissionAlert = true
+                }
+            }
+        }
     }
 }
 /*#Preview {
