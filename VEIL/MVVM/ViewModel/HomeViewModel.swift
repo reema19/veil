@@ -3,7 +3,7 @@
 //  VEIL
 //
 
-import SwiftUI
+/*import SwiftUI
 import Combine
 
 final class HomeViewModel: ObservableObject {
@@ -120,4 +120,5 @@ private struct SavedWatchingPlace: Codable {
     let title: String
     let currentDay: Int
     let totalDays: Int
-}
+}*/
+

@@ -4,12 +4,13 @@
 //
 //  Created by Ghady Al Omar on 06/12/1447 AH.
 //
+
 import Foundation
 import Combine
+final class PromptViewModel: ObservableObject {
 
-class PromptViewModel: ObservableObject {
-    
     // MARK: - Published
+
     @Published var currentPromptIndex: Int = 0
     @Published var sessionTitle: String
     @Published var sessionSubtitle: String
@@ -17,9 +18,11 @@ class PromptViewModel: ObservableObject {
     @Published var sectionSubtitle: String
 
     // MARK: - Private
+
     private let prompts: [SensePrompt]
 
     // MARK: - Computed
+
     var currentPrompt: SensePrompt {
         prompts[currentPromptIndex]
     }
@@ -33,6 +36,7 @@ class PromptViewModel: ObservableObject {
     }
 
     // MARK: - Init
+
     init(
         sessionTitle: String = "Morning café",
         sessionSubtitle: String = "Day 4 of observation",
@@ -48,14 +52,20 @@ class PromptViewModel: ObservableObject {
     }
 
     // MARK: - Actions
+
     func tryAnother() {
         guard prompts.count > 1 else { return }
-        var next = Int.random(in: 0..<prompts.count)
-        while next == currentPromptIndex { next = Int.random(in: 0..<prompts.count) }
-        currentPromptIndex = next
+
+        var nextIndex = Int.random(in: 0..<prompts.count)
+
+        while nextIndex == currentPromptIndex {
+            nextIndex = Int.random(in: 0..<prompts.count)
+        }
+
+        currentPromptIndex = nextIndex
     }
 
     func stayWithThis() {
-        // Navigation logic — يكمّل للـ view التالي
+        // PromptQuestionView handles the transition into observation mode.
     }
 }

@@ -9,7 +9,6 @@ import Foundation
 import AVFoundation
 import Combine
 import SwiftUI
-
 enum AudioRecordingState {
     case idle
     case recording
@@ -42,6 +41,7 @@ final class AudioRecorderViewModel: ObservableObject {
     private let service = AudioRecorderService()
     private var timer: Timer?
     private var startDate = Date()
+    private var latestSourceDraft: ObservationDraft?
 
     var formattedTime: String {
         String(format: "00:%02d", seconds)
@@ -55,7 +55,9 @@ final class AudioRecorderViewModel: ObservableObject {
         min(CGFloat(seconds) / CGFloat(maxRecordingSeconds), 1)
     }
 
-    func startRecording() {
+    func startRecording(sourceDraft: ObservationDraft? = nil) {
+        latestSourceDraft = sourceDraft
+
         AVAudioSession.sharedInstance().requestRecordPermission { [weak self] granted in
             DispatchQueue.main.async {
                 guard let self else { return }
@@ -76,14 +78,16 @@ final class AudioRecorderViewModel: ObservableObject {
                     self.startDate = Date()
                     self.startTimer()
                 } catch {
-                    print("Failed to start audio recording:", error)
+                    print("Failed to start audio recording:", error.localizedDescription)
                 }
             }
         }
     }
 
-    func stopRecording(sourceDraft: ObservationDraft?) {
+    func stopRecording(sourceDraft: ObservationDraft? = nil) {
         guard state == .recording else { return }
+
+        let finalDraft = sourceDraft ?? latestSourceDraft
 
         service.stopRecording()
         audioURL = service.audioURL
@@ -99,10 +103,10 @@ final class AudioRecorderViewModel: ObservableObject {
                 audioURL: audioURL,
                 durationSeconds: seconds,
                 waveformSamples: waveformSamples,
-                placeTitle: sourceDraft?.placeTitle,
-                placeCurrentDay: sourceDraft?.placeCurrentDay,
-                placeTotalDays: sourceDraft?.placeTotalDays,
-                prompt: sourceDraft?.prompt
+                placeTitle: finalDraft?.placeTitle,
+                placeCurrentDay: finalDraft?.placeCurrentDay,
+                placeTotalDays: finalDraft?.placeTotalDays,
+                prompt: finalDraft?.prompt
             )
         }
 
@@ -111,13 +115,16 @@ final class AudioRecorderViewModel: ObservableObject {
 
     func resetRecording() {
         service.stopRecording()
+
         audioURL = nil
         seconds = 0
         soundLevel = 0.05
         waveformSamples = []
         playbackProgress = 0
         recordingDraft = nil
+        latestSourceDraft = nil
         state = .idle
+
         timer?.invalidate()
         timer = nil
     }
@@ -144,7 +151,7 @@ final class AudioRecorderViewModel: ObservableObject {
                 seconds = Int(Date().timeIntervalSince(startDate))
 
                 if seconds >= maxRecordingSeconds {
-                    stopRecording(sourceDraft: nil)
+                    stopRecording()
                 }
             }
         }
@@ -169,7 +176,7 @@ final class AudioRecorderViewModel: ObservableObject {
 
         withAnimation(
             .linear(duration: Double(max(seconds, 1)))
-            .repeatForever(autoreverses: false)
+                .repeatForever(autoreverses: false)
         ) {
             playbackProgress = 1
         }
@@ -179,6 +186,7 @@ final class AudioRecorderViewModel: ObservableObject {
         let minDb: Float = -55
         let clamped = max(power, minDb)
         let normalized = (clamped - minDb) / abs(minDb)
+
         return CGFloat(normalized)
     }
 }

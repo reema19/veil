@@ -2,17 +2,28 @@
 //  Mainpage.swift
 //  VEIL
 //
-import SwiftData
+
 import SwiftUI
+import SwiftData
 
 struct Mainpage: View {
 
     @Environment(\.modelContext) private var modelContext
-    @StateObject private var vm = MainpageViewModel()
-    @StateObject private var homeViewModel = HomeViewModel()
-    @StateObject private var locationPermissionViewModel = LocationPermissionViewModel()
 
-    @AppStorage("user_name") private var userName: String = ""
+    @Query(
+        filter: #Predicate<Place> { place in
+            place.deletedAt == nil && place.statusRawValue == "active"
+        },
+        sort: \Place.createdAt,
+        order: .reverse
+    )
+    private var activePlaces: [Place]
+
+    @Query(sort: \LocalProfile.createdAt, order: .forward)
+    private var profiles: [LocalProfile]
+
+    @StateObject private var vm = MainpageViewModel()
+    @StateObject private var locationPermissionViewModel = LocationPermissionViewModel()
 
     @State private var goToMapScreen = false
 
@@ -20,6 +31,13 @@ struct Mainpage: View {
     @State private var showEmptyState = false
     @State private var showAddButton = false
     @State private var showHomeView = false
+
+    private var displayName: String {
+        let name = profiles.first?.displayName
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+        return name.isEmpty ? "there" : name
+    }
 
     var body: some View {
 
@@ -40,7 +58,7 @@ struct Mainpage: View {
                             .font(.system(size: 30, weight: .bold))
                             .foregroundColor(Color("TitleColor"))
 
-                        Text(userName.isEmpty ? "there" : userName)
+                        Text(displayName)
                             .font(.system(size: 30, weight: .regular))
                             .foregroundColor(Color("TitleColor"))
 
@@ -84,15 +102,13 @@ struct Mainpage: View {
 
                     LocationPermissionSheetView(
                         onClose: {
-                            withAnimation(.spring(response: 0.35,
-                                                  dampingFraction: 0.85)) {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
                                 vm.showLocationSheet = false
                             }
                         },
                         onDone: {
 
-                            withAnimation(.spring(response: 0.35,
-                                                  dampingFraction: 0.85)) {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
                                 vm.showLocationSheet = false
                             }
 
@@ -106,8 +122,12 @@ struct Mainpage: View {
         }
         .onAppear {
             vm.startPulse()
-            homeViewModel.loadSavedPlaces()
-            startEntranceAnimation()
+
+            if activePlaces.isEmpty {
+                startEntranceAnimation()
+            } else {
+                showHomeView = true
+            }
         }
         .navigationDestination(isPresented: $goToMapScreen) {
             MapScreen(
@@ -124,7 +144,7 @@ struct Mainpage: View {
                 }
             )
         }
-        .onChange(of: locationPermissionViewModel.permissionGranted) { oldValue, newValue in
+        .onChange(of: locationPermissionViewModel.permissionGranted) { _, newValue in
             if newValue {
                 goToMapScreen = true
             }
@@ -132,11 +152,8 @@ struct Mainpage: View {
     }
 
     private func handleAddPlaceTap() {
-        homeViewModel.loadSavedPlaces()
-
-        if homeViewModel.places.isEmpty {
-            withAnimation(.spring(response: 0.35,
-                                  dampingFraction: 0.85)) {
+        if activePlaces.isEmpty {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
                 vm.showLocationSheet = true
             }
         } else {
@@ -207,5 +224,10 @@ struct Mainpage: View {
 #Preview {
     NavigationStack {
         Mainpage()
+            .modelContainer(for: [
+                LocalProfile.self,
+                Place.self,
+                PlaceObservation.self
+            ], inMemory: true)
     }
 }

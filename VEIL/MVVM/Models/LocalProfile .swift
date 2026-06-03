@@ -1,5 +1,5 @@
 //
-//  LocalProfile .swift
+//  LocalProfile.swift
 //  VEIL
 //
 //  Created by reema aljohani on 5/30/26.
@@ -28,5 +28,15 @@ final class LocalProfile {
         self.avatarName = avatarName
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+    }
+
+    func updateDisplayName(_ newName: String) {
+        self.displayName = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.updatedAt = Date()
+    }
+
+    func updateAvatarName(_ newAvatarName: String?) {
+        self.avatarName = newAvatarName
+        self.updatedAt = Date()
     }
 }

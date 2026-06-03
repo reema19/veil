@@ -6,10 +6,12 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct BePresentView3: View {
     private let page: OnboardingPage
 
+    @Environment(\.modelContext) private var modelContext
     @ObservedObject private var viewModel: OnboardingViewModel
 
     init(page: OnboardingPage, viewModel: OnboardingViewModel) {
@@ -28,13 +30,13 @@ struct BePresentView3: View {
             .offset(
                 x: viewModel.expandYellowCircles ? 0 : 90,
                 y: viewModel.expandYellowCircles ? 0 : 80
-            )//
+            )
 
             if viewModel.showNameField {
                 NameEntryView(
                     name: $viewModel.enteredName,
                     onSubmit: {
-                        viewModel.submitName()
+                        viewModel.submitName(context: modelContext)
                     }
                 )
                 .transition(
@@ -48,7 +50,7 @@ struct BePresentView3: View {
                     OnboardingTextBlock(
                         title: page.title,
                         subtitle: page.subtitle
-                    )//
+                    )
 
                     Spacer().frame(height: 60)
 
@@ -71,4 +73,9 @@ struct BePresentView3: View {
         page: OnboardingViewModel().pages[2],
         viewModel: OnboardingViewModel()
     )
+    .modelContainer(for: [
+        LocalProfile.self,
+        Place.self,
+        PlaceObservation.self
+    ], inMemory: true)
 }

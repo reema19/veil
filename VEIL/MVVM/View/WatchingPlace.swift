@@ -2,8 +2,7 @@
 //  WatchingPlace.swift
 //  VEIL
 //
-
-import SwiftUI
+/*/import SwiftUI
 
 struct WatchingPlace: Identifiable {
     let id = UUID()
@@ -11,4 +10,5 @@ struct WatchingPlace: Identifiable {
     let currentDay: Int
     let totalDays: Int
     let tint: Color
-}
+}*/
+

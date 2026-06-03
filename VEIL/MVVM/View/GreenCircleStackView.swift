@@ -3,12 +3,7 @@
 //  VEIL
 //
 //  Created by Rahaf Alhammadi on 07/12/1447 AH.
-//
 
-//
-//  GreenCircleStackView.swift
-//  VEIL
-//
 
 import SwiftUI
 

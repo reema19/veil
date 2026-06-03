@@ -1,12 +1,11 @@
 //
-//  sightquestions.swift
+//  SightQuestionsView.swift
 //  VEIL
 //
-//  Created by Ghady Al Omar on 06/12/1447 AH.
-//
+
 import SwiftUI
 
-struct sightquestions: View {
+struct SightQuestionsView: View {
 
     let place: Place
 

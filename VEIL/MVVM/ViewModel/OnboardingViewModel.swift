@@ -4,9 +4,8 @@
 //
 
 import SwiftUI
+import SwiftData
 import Combine
-
-
 final class OnboardingViewModel: ObservableObject {
 
     // MARK: - Pages Data
@@ -51,10 +50,7 @@ final class OnboardingViewModel: ObservableObject {
 
     @Published var goToMainpage: Bool = false
 
-
-    // MARK: - Stored User Name
-
-    @AppStorage("user_name") var savedUserName: String = ""
+    // MARK: - Onboarding State
 
     @AppStorage("has_completed_onboarding")
     var hasCompletedOnboarding: Bool = false
@@ -88,13 +84,32 @@ final class OnboardingViewModel: ObservableObject {
         }
     }
 
-    func submitName() {
+    func submitName(context: ModelContext) {
         let trimmedName = enteredName.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !trimmedName.isEmpty else { return }
 
-        savedUserName = trimmedName
-        hasCompletedOnboarding = true
-        goToMainpage = true
+        do {
+            let descriptor = FetchDescriptor<LocalProfile>(
+                sortBy: [SortDescriptor(\.createdAt, order: .forward)]
+            )
+
+            let profiles = try context.fetch(descriptor)
+
+            if let existingProfile = profiles.first {
+                existingProfile.updateDisplayName(trimmedName)
+            } else {
+                let newProfile = LocalProfile(displayName: trimmedName)
+                context.insert(newProfile)
+            }
+
+            try context.save()
+
+            hasCompletedOnboarding = true
+            goToMainpage = true
+
+        } catch {
+            print("Failed to save onboarding profile:", error.localizedDescription)
+        }
     }
 }

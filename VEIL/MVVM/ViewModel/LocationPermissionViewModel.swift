@@ -4,10 +4,9 @@
 //
 
 import Foundation
-import Combine
 import CoreLocation
-
-class LocationPermissionViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
+import Combine
+final class LocationPermissionViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     @Published var permissionGranted = false
     @Published var permissionDenied = false

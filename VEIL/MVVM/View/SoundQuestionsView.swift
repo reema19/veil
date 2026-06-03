@@ -1,13 +1,11 @@
 //
-//  soundquestions.swift
+//  SoundQuestionsView.swift
 //  VEIL
-//
-//  Created by Ghady Al Omar on 06/12/1447 AH.
 //
 
 import SwiftUI
 
-struct soundquestions: View {
+struct SoundQuestionsView: View {
 
     let place: Place
 

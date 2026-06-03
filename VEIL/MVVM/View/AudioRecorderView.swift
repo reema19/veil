@@ -103,7 +103,7 @@ struct AudioRecorderView: View {
                 DragGesture(minimumDistance: 0)
                     .onChanged { _ in
                         if viewModel.state == .idle {
-                            viewModel.startRecording()
+                            viewModel.startRecording(sourceDraft: draft)
                         }
                     }
                     .onEnded { _ in

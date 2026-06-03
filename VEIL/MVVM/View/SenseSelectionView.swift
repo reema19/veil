@@ -62,14 +62,14 @@ struct SenseSelectionView: View {
                 VStack(spacing: 46) {
 
                     NavigationLink {
-                        sightquestions(place: place)
+                        SightQuestionsView(place: place)
                     } label: {
                         SenseCardView(sense: .sight)
                     }
                     .buttonStyle(.plain)
 
                     NavigationLink {
-                        soundquestions(place: place)
+                        SoundQuestionsView(place: place)
                     } label: {
                         SenseCardView(sense: .sound)
                     }
@@ -84,16 +84,3 @@ struct SenseSelectionView: View {
         .navigationBarBackButtonHidden(true)
     }
 }
-
-/*#Preview {
-    NavigationStack {
-        SenseSelectionView(
-            place: WatchingPlace(
-                title: "Morning café",
-                currentDay: 1,
-                totalDays: 7,
-                tint: Color(red: 0.93, green: 0.92, blue: 0.58)
-            )
-        )
-    }
-}*/

@@ -1,16 +1,16 @@
 //
 //  MapViewModel.swift
-//  BePresent
+//  VEIL
 //
 //  Created by Rahaf Alhammadi on 25/11/1447 AH.
 //
 
 import SwiftUI
-import Combine
 import MapKit
 import CoreLocation
+import Combine
 
-class MapViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
+final class MapViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     @Published var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 24.7136, longitude: 46.6753),
@@ -22,61 +22,83 @@ class MapViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
     private let geocoder = CLGeocoder()
 
+    private var didSetInitialLocation = false
+    private var lastGeocodedLocation: CLLocation?
+
     override init() {
         super.init()
 
         locationManager.delegate = self
-        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+    }
+
+    func startLocationUpdates() {
         locationManager.startUpdatingLocation()
     }
 
-    // MARK: - Location Updates
+    func stopLocationUpdates() {
+        locationManager.stopUpdatingLocation()
+        geocoder.cancelGeocode()
+    }
+
     func locationManager(
         _ manager: CLLocationManager,
         didUpdateLocations locations: [CLLocation]
     ) {
         guard let location = locations.last else { return }
 
-        DispatchQueue.main.async {
-            self.region.center = location.coordinate
+        if !didSetInitialLocation {
+            didSetInitialLocation = true
+
+            DispatchQueue.main.async {
+                self.region.center = location.coordinate
+            }
         }
 
-        reverseGeocode(location)
+        if shouldReverseGeocode(location) {
+            reverseGeocode(location)
+        }
     }
 
-    // MARK: - Reverse Geocode
+    private func shouldReverseGeocode(_ location: CLLocation) -> Bool {
+        guard let lastGeocodedLocation else {
+            lastGeocodedLocation = location
+            return true
+        }
+
+        let distance = location.distance(from: lastGeocodedLocation)
+
+        if distance >= 100 {
+            self.lastGeocodedLocation = location
+            return true
+        }
+
+        return false
+    }
+
     private func reverseGeocode(_ location: CLLocation) {
+        geocoder.cancelGeocode()
 
         geocoder.reverseGeocodeLocation(location) { [weak self] placemarks, _ in
-
-            guard let self = self else { return }
+            guard let self else { return }
 
             if let place = placemarks?.first {
-
-                var address = ""
-
-                if let name = place.name {
-                    address += name
-                }
-
-                if let city = place.locality {
-                    address += ", \(city)"
-                }
-
-                if let country = place.country {
-                    address += ", \(country)"
-                }
+                let addressParts = [
+                    place.name,
+                    place.locality,
+                    place.country
+                ]
+                .compactMap { $0 }
+                .filter { !$0.isEmpty }
 
                 DispatchQueue.main.async {
-                    self.currentAddress = address
+                    self.currentAddress = addressParts.joined(separator: ", ")
                 }
             }
         }
     }
 
-    // MARK: - Start Monitoring Selected Region
     func startMonitoringSelectedRegion(radius: CLLocationDistance) {
-
         let center = region.center
 
         let selectedRegion = CLCircularRegion(
@@ -94,12 +116,7 @@ class MapViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         print("Monitoring region at \(center.latitude), \(center.longitude) with radius = \(radius / 1000) km")
     }
 
-    // MARK: - Radius UI Helper
     func radiusToPixels(_ radius: CLLocationDistance) -> CGFloat {
-
-        
-        let scale = CGFloat(radius / 1000.0) * 150
-
-        return scale
+        CGFloat(radius / 1000.0) * 150
     }
 }

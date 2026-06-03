@@ -19,8 +19,12 @@ struct HomeView: View {
     )
     private var activePlaces: [Place]
 
+    @Query(sort: \LocalProfile.createdAt, order: .forward)
+    private var profiles: [LocalProfile]
+
     @State private var selectedTab: Int = 0
     @State private var goToMapScreen = false
+    @State private var goToProfile = false
 
     private let lifecycleService = PlaceLifecycleService()
 
@@ -30,7 +34,10 @@ struct HomeView: View {
     }
 
     private var displayName: String {
-        UserDefaults.standard.string(forKey: "user_name") ?? "there"
+        let name = profiles.first?.displayName
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+        return name.isEmpty ? "there" : name
     }
 
     var body: some View {
@@ -43,9 +50,9 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 26) {
 
                     HomeHeaderView(
-                        userName: displayName.isEmpty ? "there" : displayName,
+                        userName: displayName,
                         onProfileTap: {
-                            selectedTab = 2
+                            goToProfile = true
                         }
                     )
 
@@ -92,8 +99,13 @@ struct HomeView: View {
                         latitude: latitude,
                         longitude: longitude
                     )
+
+                    goToMapScreen = false
                 }
             )
+        }
+        .navigationDestination(isPresented: $goToProfile) {
+            ProfileView()
         }
     }
 

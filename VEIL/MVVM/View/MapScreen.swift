@@ -13,7 +13,6 @@ struct MapScreen: View {
 
     @State private var radius: CLLocationDistance = 1000
     @State private var showModal = false
-    
 
     var onPlaceAdded: (_ placeName: String, _ activeDays: Int, _ latitude: Double, _ longitude: Double) -> Void
 
@@ -54,6 +53,7 @@ struct MapScreen: View {
                     MapConfirmLocationCard(
                         address: viewModel.currentAddress,
                         onConfirm: {
+                            viewModel.stopLocationUpdates()
                             viewModel.startMonitoringSelectedRegion(radius: radius)
 
                             withAnimation(.easeInOut) {
@@ -74,6 +74,8 @@ struct MapScreen: View {
                         withAnimation(.easeInOut) {
                             showModal = false
                         }
+
+                        viewModel.startLocationUpdates()
                     },
                     onContinue: { placeName, activeDays in
 
@@ -98,9 +100,12 @@ struct MapScreen: View {
         .animation(.easeInOut, value: showModal)
         .navigationTitle("Select Location")
         .navigationBarTitleDisplayMode(.inline)
-
-        // MARK: - Navigate To HomeView
-        
+        .onAppear {
+            viewModel.startLocationUpdates()
+        }
+        .onDisappear {
+            viewModel.stopLocationUpdates()
+        }
     }
 }
 
