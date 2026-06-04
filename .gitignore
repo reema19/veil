@@ -1,0 +1,9 @@
+# Secrets
+VEIL/Config/Secrets.swift
+
+# Xcode user files
+*.xcuserstate
+xcuserdata/
+
+# Config files
+*.xcconfig
