@@ -245,6 +245,9 @@ struct PromptQuestionView: View {
         } message: {
             Text("Please allow microphone access from Settings so you can record what you hear.")
         }
+        .onReceive(NotificationCenter.default.publisher(for: .observationSavedGoHome)) { _ in
+            dismiss()
+        }
         .onDisappear {
             stopTimer()
         }

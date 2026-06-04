@@ -20,6 +20,8 @@ struct ContentView: View {
     )
     private var activePlaces: [Place]
 
+    @State private var rootID = UUID()
+
     var body: some View {
         NavigationStack {
             if hasCompletedOnboarding {
@@ -31,6 +33,10 @@ struct ContentView: View {
             } else {
                 OnboardingView()
             }
+        }
+        .id(rootID)
+        .onReceive(NotificationCenter.default.publisher(for: .observationSavedGoHome)) { _ in
+            rootID = UUID()
         }
     }
 }

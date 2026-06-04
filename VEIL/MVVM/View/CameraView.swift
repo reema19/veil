@@ -6,10 +6,14 @@
 //
 import SwiftUI
 import AVFoundation
+import SwiftData
 
 struct CameraView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+
     @StateObject private var viewModel = CameraViewModel()
+    @State private var showSavedSheet = false
 
     let draft: ObservationDraft?
 
@@ -21,7 +25,6 @@ struct CameraView: View {
         GeometryReader { geometry in
             let width = geometry.size.width
             let height = geometry.size.height
-
             let cameraSize = min(width - 56, height * 0.43)
 
             ZStack {
@@ -29,23 +32,15 @@ struct CameraView: View {
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
-
                     HStack {
-                        Button {
-                            dismiss()
-                        } label: {
+                        Button { dismiss() } label: {
                             Image(systemName: "xmark")
                                 .font(.system(size: 22, weight: .medium))
                                 .foregroundColor(.black)
                                 .frame(width: 50, height: 50)
                                 .background(.ultraThinMaterial)
                                 .clipShape(Circle())
-                                .shadow(
-                                    color: .black.opacity(0.08),
-                                    radius: 12,
-                                    x: 0,
-                                    y: 6
-                                )
+                                .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
                         }
                         .buttonStyle(.plain)
 
@@ -61,7 +56,7 @@ struct CameraView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 42, style: .continuous))
 
                     Text("Capture what held your attention.")
-                        .font(.system(size: 16, weight: .regular))
+                        .font(.system(size: 16))
                         .foregroundColor(Color("SubtitleColor"))
                         .multilineTextAlignment(.center)
                         .padding(.top, 28)
@@ -84,10 +79,29 @@ struct CameraView: View {
                             viewModel.dismissCapturedPhoto()
                         },
                         onSave: {
-                            print("Save photo later")
+                            saveObservationTemporarily()
                         }
                     )
                     .zIndex(2)
+                }
+
+                if showSavedSheet {
+                    MomentSavedSheetView(
+                        onClose: {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                showSavedSheet = false
+                            }
+                        },
+                        onDone: {
+                            NotificationCenter.default.post(
+                                name: .observationSavedGoHome,
+                                object: nil
+                            )
+                            dismiss()
+                        }
+                    )
+                    .zIndex(5)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
         }
@@ -119,6 +133,50 @@ struct CameraView: View {
                 )
         }
     }
+
+    private func saveObservationTemporarily() {
+        guard let draft else {
+            print("Missing observation draft")
+            return
+        }
+
+        let placeID = draft.placeID
+
+        let descriptor = FetchDescriptor<Place>(
+            predicate: #Predicate<Place> { place in
+                place.id == placeID
+            }
+        )
+
+        do {
+            guard let place = try modelContext.fetch(descriptor).first else {
+                print("Could not find place for observation")
+                return
+            }
+
+            let observation = PlaceObservation(
+                sense: draft.sense,
+                promptText: draft.prompt,
+                mediaFileName: "photo-not-saved-yet",
+                durationSeconds: draft.durationSeconds,
+                place: place
+            )
+
+            modelContext.insert(observation)
+            try modelContext.save()
+
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                showSavedSheet = true
+            }
+
+        } catch {
+            print("Failed to save sight observation:", error)
+        }
+    }
+}
+
+extension Notification.Name {
+    static let observationSavedGoHome = Notification.Name("observationSavedGoHome")
 }
 
 #Preview {

@@ -10,6 +10,7 @@ struct AudioRecorderView: View {
 
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = AudioRecorderViewModel()
+    @State private var showSavedSheet = false
 
     let draft: ObservationDraft?
 
@@ -41,6 +42,25 @@ struct AudioRecorderView: View {
                 } else {
                     recordingStartView(blobSize: blobSize)
                         .position(x: width / 2, y: height * 0.50)
+                }
+
+                if showSavedSheet {
+                    MomentSavedSheetView(
+                        onClose: {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                                showSavedSheet = false
+                            }
+                        },
+                        onDone: {
+                            NotificationCenter.default.post(
+                                name: .observationSavedGoHome,
+                                object: nil
+                            )
+                            dismiss()
+                        }
+                    )
+                    .zIndex(5)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
             .overlay(alignment: .topLeading) {
@@ -149,10 +169,17 @@ struct AudioRecorderView: View {
                     .clipped()
 
                 Button {
-                    if let recordingDraft = viewModel.recordingDraft {
-                        print("Saved audio:", recordingDraft.audioURL.absoluteString)
-                        print("Duration:", recordingDraft.durationSeconds)
-                        print("Prompt:", recordingDraft.prompt ?? "No prompt")
+                    guard let recordingDraft = viewModel.recordingDraft else {
+                        print("Missing audio recording draft")
+                        return
+                    }
+
+                    print("Saved audio:", recordingDraft.audioURL.absoluteString)
+                    print("Duration:", recordingDraft.durationSeconds)
+                    print("Prompt:", recordingDraft.prompt ?? "No prompt")
+
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                        showSavedSheet = true
                     }
                 } label: {
                     Image(systemName: "checkmark")
