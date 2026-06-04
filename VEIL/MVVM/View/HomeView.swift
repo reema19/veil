@@ -15,9 +15,18 @@ struct HomeView: View {
             place.deletedAt == nil && place.statusRawValue == "active"
         },
         sort: \Place.createdAt,
-        order: .reverse
+        order: .forward
     )
     private var activePlaces: [Place]
+
+    @Query(
+        filter: #Predicate<Place> { place in
+            place.deletedAt == nil
+        },
+        sort: \Place.createdAt,
+        order: .forward
+    )
+    private var allPlaces: [Place]
 
     @Query(sort: \LocalProfile.createdAt, order: .forward)
     private var profiles: [LocalProfile]
@@ -25,6 +34,7 @@ struct HomeView: View {
     @State private var selectedTab: Int = 0
     @State private var goToMapScreen = false
     @State private var goToProfile = false
+    @State private var showMaxPlacesAlert = false
 
     private let lifecycleService = PlaceLifecycleService()
 
@@ -46,40 +56,15 @@ struct HomeView: View {
             Color("BackgroundColor")
                 .ignoresSafeArea()
 
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 26) {
-
-                    HomeHeaderView(
-                        userName: displayName,
-                        onProfileTap: {
-                            goToProfile = true
-                        }
-                    )
-
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Moments of presence")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(Color("TitleColor"))
-
-                        Text("Small moments of attention add up over time.")
-                            .font(.system(size: 13, weight: .regular))
-                            .foregroundColor(Color("SubtitleColor"))
+            if selectedTab == 0 {
+                homeContent
+            } else {
+                ArchiveView(
+                    places: Array(allPlaces.prefix(3)),
+                    onProfileTap: {
+                        goToProfile = true
                     }
-
-                    PresenceSummaryPlaceholderView(
-                        totalTime: totalPresenceTime
-                    )
-
-                    WatchingPlacesSectionView(
-                        places: activePlaces,
-                        onAddPlaceTap: {
-                            goToMapScreen = true
-                        }
-                    )
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, 20)
-                .padding(.bottom, 110)
+                )
             }
         }
         .safeAreaInset(edge: .bottom) {
@@ -89,6 +74,11 @@ struct HomeView: View {
         }
         .onAppear {
             lifecycleService.updateExpiredPlaces(activePlaces, context: modelContext)
+        }
+        .alert("Maximum places reached", isPresented: $showMaxPlacesAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("You can only watch 3 places at a time. Later, when one is deleted or finished, you can add another place.")
         }
         .navigationDestination(isPresented: $goToMapScreen) {
             MapScreen(
@@ -109,12 +99,64 @@ struct HomeView: View {
         }
     }
 
+    private var homeContent: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 26) {
+
+                HomeHeaderView(
+                    userName: displayName,
+                    onProfileTap: {
+                        goToProfile = true
+                    }
+                )
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Moments of presence")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(Color("TitleColor"))
+
+                    Text("Small moments of attention add up over time.")
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundColor(Color("SubtitleColor"))
+                }
+
+                PresenceSummaryPlaceholderView(
+                    totalTime: totalPresenceTime
+                )
+
+                WatchingPlacesSectionView(
+                    places: Array(activePlaces.prefix(3)),
+                    onAddPlaceTap: {
+                        openMapIfAllowed()
+                    }
+                )
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
+            .padding(.bottom, 110)
+        }
+    }
+
+    private func openMapIfAllowed() {
+        guard activePlaces.count < 3 else {
+            showMaxPlacesAlert = true
+            return
+        }
+
+        goToMapScreen = true
+    }
+
     private func addPlace(
         name: String,
         activeDays: Int,
         latitude: Double,
         longitude: Double
     ) {
+        guard activePlaces.count < 3 else {
+            showMaxPlacesAlert = true
+            return
+        }
+
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedName.isEmpty else { return }
 
@@ -148,10 +190,10 @@ struct HomeView: View {
 #Preview {
     NavigationStack {
         HomeView()
-            .modelContainer(for: [
-                LocalProfile.self,
-                Place.self,
-                PlaceObservation.self
-            ], inMemory: true)
     }
+    .modelContainer(for: [
+        LocalProfile.self,
+        Place.self,
+        PlaceObservation.self
+    ], inMemory: true)
 }

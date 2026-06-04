@@ -73,8 +73,11 @@ struct WatchingPlacesSectionView: View {
                 NavigationLink {
                     SenseSelectionView(place: places[index])
                 } label: {
-                    WatchingPlaceCardView(place: places[index])
-                        .frame(width: cardWidth, height: cardHeight)
+                    WatchingPlaceCardView(
+                        place: places[index],
+                        colorIndex: index
+                    )
+                    .frame(width: cardWidth, height: cardHeight)
                 }
                 .buttonStyle(.plain)
                 .scaleEffect(scale(for: index))

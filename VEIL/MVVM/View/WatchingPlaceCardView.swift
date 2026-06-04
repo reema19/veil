@@ -8,6 +8,7 @@ import SwiftUI
 struct WatchingPlaceCardView: View {
 
     let place: Place
+    let colorIndex: Int
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -64,12 +65,12 @@ struct WatchingPlaceCardView: View {
 
     private var placeTint: Color {
         let colors: [Color] = [
-            Color(red: 0.93, green: 0.92, blue: 0.58),
-            Color(red: 0.82, green: 0.88, blue: 0.82),
-            Color(red: 0.83, green: 0.86, blue: 0.92)
+            Color(red: 0.93, green: 0.92, blue: 0.58), // Yellow
+            Color(red: 0.83, green: 0.86, blue: 0.92), // Blue
+            Color(red: 0.82, green: 0.88, blue: 0.82)  // Green
         ]
 
-        let index = abs(place.id.hashValue) % colors.count
-        return colors[index]
+        let safeIndex = min(max(colorIndex, 0), colors.count - 1)
+        return colors[safeIndex]
     }
 }
