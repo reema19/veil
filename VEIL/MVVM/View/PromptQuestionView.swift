@@ -2,8 +2,7 @@
 //  PromptQuestionView.swift
 //  VEIL
 //
-//  Created by Ghady Al Omar on 06/12/1447 AH.
-//
+
 import SwiftUI
 import AVFoundation
 
@@ -21,6 +20,11 @@ struct PromptQuestionView: View {
     @State private var cameraDraft: ObservationDraft?
     @State private var audioDraft: ObservationDraft?
     @State private var showMicrophonePermissionAlert = false
+
+    @State private var revealCount = 0
+    @State private var isTypingPrompt = false
+    @State private var hasPlayedInitialTyping = false
+    @State private var typingTask: Task<Void, Never>?
 
     private var backgroundColor: Color {
         if !isObservationActive {
@@ -41,6 +45,10 @@ struct PromptQuestionView: View {
         return String(format: "00:%02d:%02d", minutes, remainingSeconds)
     }
 
+    private var shouldAnimateHalo: Bool {
+        viewModel.isLoadingPrompts || isTypingPrompt
+    }
+
     var body: some View {
         GeometryReader { geometry in
 
@@ -50,20 +58,22 @@ struct PromptQuestionView: View {
             let headerHorizontalPadding: CGFloat = 18
             let contentHorizontalPadding: CGFloat = 42
 
-            let haloSize = min(width * 0.92, 360)
+            let haloSize = min(width * 0.92, 330)
             let questionFontSize = min(max(width * 0.055, 20), 24)
             let questionWidth = min(width * 0.72, 290)
 
             ZStack {
                 backgroundColor
                     .ignoresSafeArea()
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        finishTypingImmediately()
+                    }
                     .animation(.easeInOut(duration: 0.65), value: isObservationActive)
 
                 VStack(spacing: 0) {
 
-                    // MARK: - Header
                     HStack(spacing: 12) {
-
                         Button {
                             dismiss()
                         } label: {
@@ -73,12 +83,7 @@ struct PromptQuestionView: View {
                                 .frame(width: 50, height: 50)
                                 .background(.ultraThinMaterial)
                                 .clipShape(Circle())
-                                .shadow(
-                                    color: .black.opacity(0.08),
-                                    radius: 12,
-                                    x: 0,
-                                    y: 6
-                                )
+                                .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
                         }
                         .buttonStyle(.plain)
 
@@ -99,7 +104,6 @@ struct PromptQuestionView: View {
                     .padding(.top, 20)
                     .opacity(isObservationActive ? 0 : 1)
 
-                    // MARK: - Section Title
                     HStack {
                         VStack(alignment: .leading, spacing: 8) {
                             Text(viewModel.sectionTitle)
@@ -118,22 +122,27 @@ struct PromptQuestionView: View {
                     .padding(.top, 52)
                     .opacity(isObservationActive ? 0 : 1)
 
-                    // MARK: - Question Area
                     ZStack {
                         AIHaloView(
                             size: haloSize,
                             expanded: isObservationActive,
-                            sense: viewModel.currentPrompt.sense
+                            sense: viewModel.currentPrompt.sense,
+                            isThinking: shouldAnimateHalo
                         )
 
                         VStack(spacing: 12) {
-                            Text(viewModel.currentPrompt.question)
-                                .font(.custom("DMSans-Regular", size: questionFontSize))
-                                .foregroundColor(Color("TitleColor"))
-                                .multilineTextAlignment(.center)
-                                .lineSpacing(4)
-                                .frame(width: questionWidth)
-                                .animation(.easeInOut, value: viewModel.currentPromptIndex)
+                            if viewModel.isLoadingPrompts {
+                                SlowmoPromptLoader()
+                                    .frame(width: 70, height: 70)
+                                    .transition(.opacity)
+                            } else {
+                                TypingPromptText(
+                                    text: viewModel.currentPrompt.question,
+                                    revealCount: revealCount,
+                                    fontSize: questionFontSize,
+                                    width: questionWidth
+                                )
+                            }
 
                             if isObservationActive {
                                 Text(formattedTime)
@@ -144,34 +153,36 @@ struct PromptQuestionView: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: height * 0.38)
+                    .frame(height: height * 0.34)
                     .padding(.top, height * 0.045)
 
-                    // MARK: - Progress
                     VStack(spacing: 10) {
-                        HStack(spacing: 10) {
-                            ForEach(0..<viewModel.totalPrompts, id: \.self) { i in
-                                Circle()
-                                    .fill(i == viewModel.currentPromptIndex
-                                          ? Color("TitleColor")
-                                          : Color("DotInactive"))
-                                    .frame(width: 7, height: 7)
+                        if !viewModel.isLoadingPrompts {
+                            HStack(spacing: 10) {
+                                ForEach(0..<viewModel.totalPrompts, id: \.self) { i in
+                                    Circle()
+                                        .fill(i == viewModel.currentPromptIndex
+                                              ? Color("TitleColor")
+                                              : Color("DotInactive"))
+                                        .frame(width: 7, height: 7)
+                                }
                             }
-                        }
 
-                        Text(viewModel.promptLabel)
-                            .font(.custom("DMSans-Regular", size: 12))
-                            .foregroundColor(Color("SubtitleColor"))
+                            Text(viewModel.promptLabel)
+                                .font(.custom("DMSans-Regular", size: 12))
+                                .foregroundColor(Color("SubtitleColor"))
+                        }
                     }
                     .opacity(isObservationActive ? 0 : 1)
                     .padding(.top, 34)
 
                     Spacer()
 
-                    // MARK: - Actions
                     VStack(spacing: 12) {
                         if !isObservationActive {
-                            Button(action: { viewModel.tryAnother() }) {
+                            Button(action: {
+                                viewModel.tryAnother()
+                            }) {
                                 HStack(spacing: 8) {
                                     Image(systemName: viewModel.currentPromptIndex == 0 ? "arrow.clockwise" : "arrow.left")
                                         .font(.system(size: 14, weight: .regular))
@@ -186,6 +197,8 @@ struct PromptQuestionView: View {
                                         .stroke(Color("TitleColor"), lineWidth: 1)
                                 )
                             }
+                            .disabled(viewModel.isLoadingPrompts || isTypingPrompt)
+                            .opacity((viewModel.isLoadingPrompts || isTypingPrompt) ? 0.45 : 1)
                         }
 
                         Button {
@@ -228,6 +241,8 @@ struct PromptQuestionView: View {
                                 .background(Color.black)
                                 .cornerRadius(40)
                         }
+                        .disabled(viewModel.isLoadingPrompts || isTypingPrompt)
+                        .opacity((viewModel.isLoadingPrompts || isTypingPrompt) ? 0.45 : 1)
                     }
                     .padding(.bottom, height * 0.045)
                 }
@@ -248,9 +263,58 @@ struct PromptQuestionView: View {
         .onReceive(NotificationCenter.default.publisher(for: .observationSavedGoHome)) { _ in
             dismiss()
         }
+        .onChange(of: viewModel.isLoadingPrompts) { _, isLoading in
+            if !isLoading && !hasPlayedInitialTyping {
+                hasPlayedInitialTyping = true
+                startTypingPrompt(viewModel.currentPrompt.question)
+            }
+        }
+        .onChange(of: viewModel.currentPromptIndex) { _, _ in
+            if !viewModel.isLoadingPrompts {
+                showPromptImmediately(viewModel.currentPrompt.question)
+            }
+        }
         .onDisappear {
+            typingTask?.cancel()
             stopTimer()
         }
+    }
+
+    private func startTypingPrompt(_ prompt: String) {
+        typingTask?.cancel()
+
+        revealCount = 0
+        isTypingPrompt = true
+
+        typingTask = Task { @MainActor in
+            let characters = Array(prompt)
+
+            for index in characters.indices {
+                if Task.isCancelled { return }
+
+                revealCount = index + 1
+
+                try? await Task.sleep(nanoseconds: 145_000_000)
+            }
+
+            if !Task.isCancelled {
+                isTypingPrompt = false
+            }
+        }
+    }
+
+    private func showPromptImmediately(_ prompt: String) {
+        typingTask?.cancel()
+        revealCount = Array(prompt).count
+        isTypingPrompt = false
+    }
+
+    private func finishTypingImmediately() {
+        guard isTypingPrompt else { return }
+
+        typingTask?.cancel()
+        revealCount = Array(viewModel.currentPrompt.question).count
+        isTypingPrompt = false
     }
 
     private func startTimer() {
@@ -279,22 +343,61 @@ struct PromptQuestionView: View {
         }
     }
 }
-/*#Preview {
-    PromptQuestionView(
-        place: WatchingPlace(
-            title: "Morning café",
-            currentDay: 4,
-            totalDays: 7,
-            tint: Color(red: 0.93, green: 0.92, blue: 0.58)
-        ),
-        viewModel: PromptViewModel(
-            sectionTitle: "Stay with what you see",
-            sectionSubtitle: "You don't need to capture everything.\none thing is enough.",
-            prompts: [
-                SensePrompt(question: "What detail would you keep from here?", sense: .sight),
-                SensePrompt(question: "What would disappear if you blinked?", sense: .sight)
-            ]
+
+private struct TypingPromptText: View {
+    let text: String
+    let revealCount: Int
+    let fontSize: CGFloat
+    let width: CGFloat
+
+    private var visibleText: String {
+        String(Array(text).prefix(revealCount))
+    }
+
+    private var remainingText: String {
+        String(Array(text).dropFirst(revealCount))
+    }
+
+    var body: some View {
+        (
+            Text(visibleText)
+                .foregroundColor(Color("TitleColor"))
+            +
+            Text(remainingText)
+                .foregroundColor(Color(hex: "9A9A9A"))
         )
-    )
+        .font(.custom("DMSans-Regular", size: fontSize))
+        .multilineTextAlignment(.center)
+        .lineSpacing(4)
+        .frame(width: width)
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: width)
+        .lineLimit(nil)
+        
+    }
 }
-*/
+
+private struct SlowmoPromptLoader: View {
+
+    @State private var rotation: Double = 0
+    @State private var opacity: Double = 0.32
+    @State private var scale: CGFloat = 0.96
+
+    var body: some View {
+        Image(systemName: "slowmo")
+            .font(.system(size: 42, weight: .regular))
+            .foregroundColor(Color("TitleColor").opacity(opacity))
+            .rotationEffect(.degrees(rotation))
+            .scaleEffect(scale)
+            .onAppear {
+                withAnimation(.linear(duration: 2.2).repeatForever(autoreverses: false)) {
+                    rotation = 360
+                }
+
+                withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true)) {
+                    opacity = 0.82
+                    scale = 1.05
+                }
+            }
+    }
+}

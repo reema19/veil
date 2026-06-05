@@ -4,11 +4,14 @@
 //
 //  Created by Ghady Al Omar on 07/12/1447 AH.
 //
+
 import SwiftUI
 import AVFoundation
 import SwiftData
+import UIKit
 
 struct CameraView: View {
+
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
@@ -23,26 +26,35 @@ struct CameraView: View {
 
     var body: some View {
         GeometryReader { geometry in
+
             let width = geometry.size.width
             let height = geometry.size.height
             let cameraSize = min(width - 56, height * 0.43)
 
             ZStack {
+
                 Color(hex: "F4F4E8")
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
+
                     HStack {
-                        Button { dismiss() } label: {
+                        Button {
+                            dismiss()
+                        } label: {
                             Image(systemName: "xmark")
                                 .font(.system(size: 22, weight: .medium))
                                 .foregroundColor(.black)
                                 .frame(width: 50, height: 50)
                                 .background(.ultraThinMaterial)
                                 .clipShape(Circle())
-                                .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
+                                .shadow(
+                                    color: .black.opacity(0.08),
+                                    radius: 12,
+                                    x: 0,
+                                    y: 6
+                                )
                         }
-                        .buttonStyle(.plain)
 
                         Spacer()
                     }
@@ -53,7 +65,12 @@ struct CameraView: View {
 
                     cameraContent
                         .frame(width: cameraSize, height: cameraSize)
-                        .clipShape(RoundedRectangle(cornerRadius: 42, style: .continuous))
+                        .clipShape(
+                            RoundedRectangle(
+                                cornerRadius: 42,
+                                style: .continuous
+                            )
+                        )
 
                     Text("Capture what held your attention.")
                         .font(.system(size: 16))
@@ -79,7 +96,7 @@ struct CameraView: View {
                             viewModel.dismissCapturedPhoto()
                         },
                         onSave: {
-                            saveObservationTemporarily()
+                            savePhotoObservation(photo)
                         }
                     )
                     .zIndex(2)
@@ -114,9 +131,12 @@ struct CameraView: View {
         }
     }
 
+    // MARK: - Camera Content
+
     @ViewBuilder
     private var cameraContent: some View {
         switch viewModel.cameraPermission {
+
         case .authorized:
             ViewfinderView(viewModel: viewModel)
 
@@ -134,30 +154,27 @@ struct CameraView: View {
         }
     }
 
-    private func saveObservationTemporarily() {
-        guard let draft else {
+    // MARK: - Save Photo Observation
+
+    private func savePhotoObservation(_ image: UIImage) {
+
+        guard let draft = draft else {
             print("Missing observation draft")
             return
         }
 
-        let placeID = draft.placeID
-
-        let descriptor = FetchDescriptor<Place>(
-            predicate: #Predicate<Place> { place in
-                place.id == placeID
-            }
-        )
-
         do {
-            guard let place = try modelContext.fetch(descriptor).first else {
-                print("Could not find place for observation")
+            let fileName = try MediaStorageService.shared.savePhoto(image)
+
+            guard let place = try fetchPlace(with: draft.placeID) else {
+                print("Could not find place for sight observation")
                 return
             }
 
             let observation = PlaceObservation(
                 sense: draft.sense,
                 promptText: draft.prompt,
-                mediaFileName: "photo-not-saved-yet",
+                mediaFileName: fileName,
                 durationSeconds: draft.durationSeconds,
                 place: place
             )
@@ -173,7 +190,20 @@ struct CameraView: View {
             print("Failed to save sight observation:", error)
         }
     }
+
+    // MARK: - Safe Place Fetch
+
+    private func fetchPlace(with id: UUID) throws -> Place? {
+        let descriptor = FetchDescriptor<Place>()
+        let places = try modelContext.fetch(descriptor)
+
+        return places.first { place in
+            place.id == id
+        }
+    }
 }
+
+// MARK: - Notification
 
 extension Notification.Name {
     static let observationSavedGoHome = Notification.Name("observationSavedGoHome")

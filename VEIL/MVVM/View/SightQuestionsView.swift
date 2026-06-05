@@ -2,17 +2,17 @@
 //  SightQuestionsView.swift
 //  VEIL
 //
-
 import SwiftUI
 
 struct SightQuestionsView: View {
 
     let place: Place
+    @StateObject private var viewModel: PromptViewModel
 
-    var body: some View {
-        PromptQuestionView(
-            place: place,
-            viewModel: PromptViewModel(
+    init(place: Place) {
+        self.place = place
+        _viewModel = StateObject(
+            wrappedValue: PromptViewModel(
                 sessionTitle: place.name,
                 sessionSubtitle: "Day \(place.currentDay) of \(place.activeDays)",
                 sectionTitle: "Stay with what you see",
@@ -22,6 +22,13 @@ struct SightQuestionsView: View {
                     SensePrompt(question: "What would disappear if you blinked?", sense: .sight)
                 ]
             )
+        )
+    }
+
+    var body: some View {
+        PromptQuestionView(
+            place: place,
+            viewModel: viewModel
         )
     }
 }
