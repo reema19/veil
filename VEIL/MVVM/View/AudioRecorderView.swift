@@ -30,7 +30,6 @@ struct AudioRecorderView: View {
             let blobSize = min(width * 0.42, 160)
 
             ZStack {
-
                 LinearGradient(
                     colors: [
                         Color(hex: "D8DFE9").opacity(0.0),
@@ -42,9 +41,23 @@ struct AudioRecorderView: View {
                 )
                 .ignoresSafeArea()
 
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 21, weight: .medium))
+                        .foregroundColor(.black)
+                        .frame(width: 50, height: 50)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Circle())
+                        .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 6)
+                }
+                .buttonStyle(.plain)
+                .position(x: 49, y: 45)
+
                 if viewModel.state == .recorded {
                     recordedReviewView(screenWidth: width)
-                        .position(x: width / 2, y: height * 0.50)
+                        .position(x: width / 2, y: height * 0.47)
                 } else {
                     recordingStartView(blobSize: blobSize)
                         .position(x: width / 2, y: height * 0.50)
@@ -62,6 +75,8 @@ struct AudioRecorderView: View {
                                 name: .observationSavedGoHome,
                                 object: nil
                             )
+
+                            showSavedSheet = false
                             dismiss()
                         }
                     )
@@ -70,19 +85,15 @@ struct AudioRecorderView: View {
                 }
             }
         }
+        .navigationBarBackButtonHidden(true)
         .onDisappear {
             viewModel.cleanUp()
         }
     }
 
-    // MARK: - Start View
-
     private func recordingStartView(blobSize: CGFloat) -> some View {
-
         VStack(spacing: 12) {
-
             ZStack {
-
                 if viewModel.state == .recording {
                     AudioBlob(
                         size: blobSize * 1.55,
@@ -107,10 +118,26 @@ struct AudioRecorderView: View {
                         .frame(width: blobSize, height: blobSize)
                 }
 
+                if viewModel.state == .recording {
+                    OrganicAudioBlob()
+                        .stroke(Color.white.opacity(0.40), lineWidth: 1)
+                        .frame(width: blobSize, height: blobSize)
+
+                    OrganicAudioBlob()
+                        .trim(from: 0, to: viewModel.recordingProgress)
+                        .stroke(
+                            Color(hex: "EFF0A3"),
+                            style: StrokeStyle(lineWidth: 4, lineCap: .round)
+                        )
+                        .frame(width: blobSize, height: blobSize)
+                        .animation(.linear(duration: 0.1), value: viewModel.recordingProgress)
+                }
+
                 Image(systemName: "mic")
-                    .font(.system(size: 48))
+                    .font(.system(size: 48, weight: .regular))
                     .foregroundColor(.black)
             }
+            .contentShape(Rectangle())
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { _ in
@@ -127,32 +154,28 @@ struct AudioRecorderView: View {
 
             if viewModel.state == .recording {
                 Text(viewModel.remainingSecondsText)
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(.black)
+                    .font(.custom("DMSans-Regular", size: 15))
+                    .foregroundColor(Color("TitleColor"))
             }
 
             Text(helperText)
-                .font(.system(size: 16))
-                .foregroundColor(.black.opacity(0.65))
+                .font(.custom("DMSans-Regular", size: 14))
+                .foregroundColor(Color("SubtitleColor"))
+                .multilineTextAlignment(.center)
         }
     }
 
-    // MARK: - Recorded View
-
     private func recordedReviewView(screenWidth: CGFloat) -> some View {
-
         let buttonSize: CGFloat = 54
         let waveformWidth = min(screenWidth * 0.58, 230)
 
         return VStack(spacing: 18) {
-
-            HStack(spacing: 16) {
-
+            HStack(spacing: 14) {
                 Button {
                     viewModel.resetRecording()
                 } label: {
                     Image(systemName: "arrow.counterclockwise")
-                        .font(.system(size: 22, weight: .medium))
+                        .font(.system(size: 21, weight: .medium))
                         .foregroundColor(.black)
                         .frame(width: buttonSize, height: buttonSize)
                         .background(Color.white)
@@ -161,6 +184,11 @@ struct AudioRecorderView: View {
 
                 waveformView
                     .frame(width: waveformWidth, height: 56)
+                    .clipped()
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        viewModel.playRecording()
+                    }
 
                 Button {
                     saveAudio()
@@ -173,17 +201,69 @@ struct AudioRecorderView: View {
                         .clipShape(Circle())
                 }
             }
+            .buttonStyle(.plain)
 
             Text(viewModel.formattedTime)
-                .font(.system(size: 16))
-                .foregroundColor(.black.opacity(0.7))
+                .font(.custom("DMSans-Regular", size: 14))
+                .foregroundColor(Color("TitleColor"))
+
+            Text("Listen back before saving")
+                .font(.custom("DMSans-Regular", size: 14))
+                .foregroundColor(Color("SubtitleColor"))
         }
     }
 
-    // MARK: - Save Audio
+    private var waveformView: some View {
+        GeometryReader { proxy in
+            let samples = normalizedWaveformSamples
+            let movement = max(0, proxy.size.width - 20)
+            let playheadX = viewModel.playbackProgress * movement
+
+            ZStack(alignment: .leading) {
+                HStack(spacing: 4.5) {
+                    ForEach(samples.indices, id: \.self) { index in
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(Color.black.opacity(0.25))
+                            .frame(
+                                width: 3.5,
+                                height: max(8, samples[index] * 50)
+                            )
+                            .frame(height: 56, alignment: .center)
+                    }
+
+                    Rectangle()
+                        .fill(Color.black.opacity(0.22))
+                        .frame(width: 64, height: 2)
+                        .padding(.leading, 3)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color(hex: "EFF0A3"))
+                    .frame(width: 3.5, height: 52)
+                    .offset(x: playheadX)
+
+                Circle()
+                    .fill(Color(hex: "EFF0A3"))
+                    .frame(width: 7, height: 7)
+                    .offset(x: playheadX - 1.75, y: -26)
+            }
+        }
+    }
+
+    private var normalizedWaveformSamples: [CGFloat] {
+        let samples = viewModel.waveformSamples
+
+        if samples.isEmpty {
+            return Array(repeating: 0.12, count: 26)
+        }
+
+        return samples.map { sample in
+            min(max(sample, 0.12), 1.0)
+        }
+    }
 
     private func saveAudio() {
-
         guard let draft = draft else {
             print("Missing observation draft")
             return
@@ -224,8 +304,6 @@ struct AudioRecorderView: View {
         }
     }
 
-    // MARK: - Safe Place Fetch
-
     private func fetchPlace(with id: UUID) throws -> Place? {
         let descriptor = FetchDescriptor<Place>()
         let places = try modelContext.fetch(descriptor)
@@ -235,35 +313,17 @@ struct AudioRecorderView: View {
         }
     }
 
-    // MARK: - Waveform
-
-    private var waveformView: some View {
-        GeometryReader { _ in
-            HStack(spacing: 4) {
-                ForEach(viewModel.waveformSamples, id: \.self) { value in
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.black.opacity(0.3))
-                        .frame(width: 3, height: max(6, value * 50))
-                }
-            }
-        }
-    }
-
-    // MARK: - Helper
-
     private var helperText: String {
         switch viewModel.state {
         case .idle:
             return "Hold to record"
         case .recording:
-            return "Recording..."
+            return "Release to finish, or let it end automatically"
         case .recorded:
-            return "Review before saving"
+            return "Listen back before saving"
         }
     }
 }
-
-// MARK: - Organic Audio Blob
 
 struct OrganicAudioBlob: Shape {
 
@@ -315,8 +375,6 @@ struct OrganicAudioBlob: Shape {
     }
 }
 
-// MARK: - Audio Blob View
-
 struct AudioBlob: View {
 
     let size: CGFloat
@@ -328,6 +386,6 @@ struct AudioBlob: View {
             .fill(Color.white.opacity(opacity))
             .frame(width: size, height: size)
             .scaleEffect(1 + level * 0.22)
-            .animation(.easeInOut(duration: 0.16), value: level)
+            .animation(.easeInOut(duration: 0.14), value: level)
     }
 }

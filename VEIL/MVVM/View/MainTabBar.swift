@@ -8,6 +8,12 @@ import SwiftUI
 struct MainTabBar: View {
     @Binding var selectedTab: Int
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var isAccessibilitySize: Bool {
+        dynamicTypeSize.isAccessibilitySize
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             TabBarButton(
@@ -26,6 +32,7 @@ struct MainTabBar: View {
                 selectedTab = 1
             }
         }
+        .padding(isAccessibilitySize ? 6 : 0)
         .background(.ultraThinMaterial)
         .clipShape(Capsule())
         .overlay(

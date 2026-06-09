@@ -3,12 +3,13 @@
 //  VEIL
 //
 //  Created by reema aljohani on 5/25/26.
-//
 
 
 import SwiftUI
 
 struct PresenceBreathRing: View {
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var breathe = false
     @State private var rotateOuter = false
@@ -37,8 +38,8 @@ struct PresenceBreathRing: View {
                 )
                 .frame(width: size * 1.04, height: size * 1.04)
                 .blur(radius: size * 0.065)
-                .scaleEffect(breathe ? 1.055 : 0.985)
-                .opacity(breathe ? 0.96 : 0.76)
+                .scaleEffect(reduceMotion ? 1.0 : (breathe ? 1.055 : 0.985))
+                .opacity(reduceMotion ? 0.86 : (breathe ? 0.96 : 0.76))
 
             Circle()
                 .fill(
@@ -54,56 +55,58 @@ struct PresenceBreathRing: View {
                     )
                 )
                 .frame(width: size * 0.52, height: size * 0.52)
-                .blur(radius: 10)
-                .scaleEffect(breathe ? 1.06 : 0.97)
+                .blur(radius: size * 0.04)
+                .scaleEffect(reduceMotion ? 1.0 : (breathe ? 1.06 : 0.97))
                 .opacity(0.82)
 
             Circle()
                 .stroke(
                     Color(hex: "DCD96B").opacity(0.58),
                     style: StrokeStyle(
-                        lineWidth: 1.45,
+                        lineWidth: size * 0.006,
                         lineCap: .round,
-                        dash: [3, 12]
+                        dash: [size * 0.0125, size * 0.05]
                     )
                 )
                 .frame(width: size, height: size)
-                .rotationEffect(.degrees(rotateOuter ? 360 : 0))
+                .rotationEffect(.degrees(reduceMotion ? 0 : (rotateOuter ? 360 : 0)))
 
             Circle()
                 .stroke(
                     Color(hex: "B9C6D8").opacity(0.58),
                     style: StrokeStyle(
-                        lineWidth: 1.45,
+                        lineWidth: size * 0.006,
                         lineCap: .round,
-                        dash: [3, 11]
+                        dash: [size * 0.0125, size * 0.046]
                     )
                 )
                 .frame(width: size * 0.48, height: size * 0.48)
-                .rotationEffect(.degrees(rotateInner ? -360 : 0))
+                .rotationEffect(.degrees(reduceMotion ? 0 : (rotateInner ? -360 : 0)))
 
             Circle()
                 .stroke(
                     Color(hex: "C7D8C5").opacity(0.34),
                     style: StrokeStyle(
-                        lineWidth: 1.1,
+                        lineWidth: size * 0.0046,
                         lineCap: .round,
-                        dash: [2, 16]
+                        dash: [size * 0.008, size * 0.066]
                     )
                 )
                 .frame(width: size * 0.74, height: size * 0.74)
-                .rotationEffect(.degrees(rotateInner ? 360 : 0))
+                .rotationEffect(.degrees(reduceMotion ? 0 : (rotateInner ? 360 : 0)))
 
             HaloOrbitDots(
                 size: size,
-                shimmer: shimmer,
-                rotateOuter: rotateOuter,
-                rotateInner: rotateInner
+                shimmer: reduceMotion ? false : shimmer,
+                rotateOuter: reduceMotion ? false : rotateOuter,
+                rotateInner: reduceMotion ? false : rotateInner
             )
         }
         .frame(width: size, height: size)
         .drawingGroup()
+        .accessibilityHidden(true)
         .onAppear {
+            guard !reduceMotion else { return }
 
             withAnimation(.easeInOut(duration: 7).repeatForever(autoreverses: true)) {
                 breathe = true
@@ -182,7 +185,7 @@ private struct HaloOrbitDots: View {
                     .scaleEffect(shimmer ? 1.08 : 0.96)
                     .shadow(
                         color: Color(hex: dot.color).opacity(0.16),
-                        radius: shimmer ? 4 : 2
+                        radius: shimmer ? size * 0.016 : size * 0.008
                     )
                     .offset(
                         x: cos(dot.angle * .pi / 180) * radius,

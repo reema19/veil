@@ -2,13 +2,6 @@
 //  TabBarButton.swift
 //  VEIL
 //
-//  Created by Ghady Al Omar on 06/12/1447 AH.
-//
-
-//
-//  TabBarButton.swift
-//  ghady
-//
 
 import SwiftUI
 
@@ -18,16 +11,34 @@ struct TabBarButton: View {
     let isSelected: Bool
     let action: () -> Void
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var isAccessibilitySize: Bool {
+        dynamicTypeSize.isAccessibilitySize
+    }
+
+    private var buttonWidth: CGFloat {
+        isAccessibilitySize ? 112 : 100
+    }
+
+    private var buttonHeight: CGFloat {
+        isAccessibilitySize ? 68 : 58
+    }
+
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 4) {
+            VStack(spacing: isAccessibilitySize ? 6 : 4) {
                 Image(systemName: icon)
-                    .font(.system(size: 20))
+                    .font(.system(size: 20, weight: .medium))
+                    .accessibilityHidden(true)
+
                 Text(label)
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.custom("DMSans-Medium", size: 11, relativeTo: .caption))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
             }
             .foregroundColor(isSelected ? Color("TitleColor") : Color("SubtitleColor"))
-            .frame(width: 100, height: 58)
+            .frame(width: buttonWidth, height: buttonHeight)
             .background(
                 isSelected
                     ? Color("TitleColor").opacity(0.08)
@@ -35,6 +46,8 @@ struct TabBarButton: View {
             )
             .clipShape(Capsule())
         }
+        .accessibilityLabel(label)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
 }

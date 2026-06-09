@@ -31,154 +31,146 @@ struct ProfileView: View {
         return name.isEmpty ? "there" : name
     }
 
+    private var avatarInitial: String {
+        let trimmed = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return String(trimmed.prefix(1)).uppercased()
+    }
+
     var body: some View {
         ZStack {
             Color("BackgroundColor")
                 .ignoresSafeArea()
 
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 0) {
+            GeometryReader { geometry in
+                let width = geometry.size.width
+                let avatarBackgroundSize = min(width * 0.48, 188)
+                let avatarSize = min(width * 0.235, 92)
 
-                    // MARK: - Header
-                    HStack {
-                        Button(action: { dismiss() }) {
-                            ZStack {
-                                Circle()
-                                    .fill(.white)
-                                    .frame(width: 44, height: 44)
-                                    .shadow(color: .black.opacity(0.10), radius: 16, x: 0, y: 4)
-                                Image(systemName: "chevron.left")
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundColor(Color(hex: "#1A1A1A"))
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 0) {
+
+                        // MARK: - Header
+                        profileHeader
+
+                        // MARK: - Profile Avatar
+                        ZStack {
+                            Image("xmarkVector")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(
+                                    width: avatarBackgroundSize,
+                                    height: avatarBackgroundSize
+                                )
+
+                            Circle()
+                                .fill(.ultraThinMaterial)
+                                .frame(width: avatarSize, height: avatarSize)
+                                .overlay(
+                                    Circle()
+                                        .strokeBorder(
+                                            Color("TitleColor").opacity(0.08),
+                                            lineWidth: 1
+                                        )
+                                )
+                                .shadow(
+                                    color: .black.opacity(0.08),
+                                    radius: 12,
+                                    x: 0,
+                                    y: 6
+                                )
+
+                            Text(avatarInitial)
+                                .font(.system(size: min(avatarSize * 0.42, 38), weight: .bold))
+                                .foregroundColor(Color("TitleColor"))
+                        }
+                        .padding(.top, 32)
+
+                        // MARK: - Name
+                        Button {
+                            editedName = displayName == "there" ? "" : displayName
+                            showEditNameSheet = true
+                        } label: {
+                            HStack(spacing: 10) {
+                                Text(displayName)
+                                    .font(.system(size: 24, weight: .bold))
+                                    .foregroundColor(Color("TitleColor"))
+
+                                Image(systemName: "pencil.line")
+                                    .font(.system(size: 22, weight: .medium))
+                                    .foregroundColor(Color("TitleColor"))
                             }
+                            .padding(.horizontal, 36)
+                            .frame(height: 52)
+                            .background(Color.black.opacity(0.06))
+                            .clipShape(Capsule())
                         }
+                        .buttonStyle(.plain)
+                        .padding(.top, 14)
 
-                        Spacer()
+                        Text("Noticing since April 22")
+                            .font(.system(size: 16, weight: .regular))
+                            .foregroundColor(Color("SubtitleColor"))
+                            .padding(.top, 12)
 
-                        Text("Profile")
-                            .font(.custom("DMSans-SemiBold", size: 24))
-                            .foregroundColor(.black)
+                        // MARK: - Notification Section
+                        VStack(alignment: .leading, spacing: 18) {
+                            Text("Notification")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(Color("TitleColor"))
+                                .padding(.leading, 14)
 
-                        Spacer()
-
-                        Color.clear
-                            .frame(width: 50, height: 50)
-                    }
-                    .padding(.horizontal, 28)
-                    .padding(.top, 5)
-                    // MARK: - Profile Icon
-                    ZStack {
-                        Image("xmarkVector")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 188, height: 188)
-
-                        Image(systemName: "person.crop.circle")
-                            .font(.system(size: 27, weight: .medium))
-                            .foregroundColor(Color("TitleColor"))
-                            .frame(width: 84, height: 84)
-                            .background(.ultraThinMaterial)
-                            .clipShape(Circle())
-                            .overlay(
-                                Circle()
-                                    .strokeBorder(
-                                        Color("TitleColor").opacity(0.08),
-                                        lineWidth: 1
-                                    )
+                            ProfileToggleRow(
+                                icon: "position-icon",
+                                title: "When you arrive",
+                                isOn: $whenYouArriveEnabled
                             )
-                            .shadow(
-                                color: .black.opacity(0.08),
-                                radius: 12,
-                                x: 0,
-                                y: 6
+
+                            Text("Receive a notification when you enter the location.")
+                                .font(.system(size: 14, weight: .regular))
+                                .foregroundColor(Color("SubtitleColor"))
+                                .padding(.leading, 6)
+
+                            ProfileToggleRow(
+                                icon: "Don’t-disturb",
+                                title: "Don’t disturb",
+                                isOn: $dontDisturbEnabled
                             )
-                    }
-                    .padding(.top, 5)
 
-                    // MARK: - Name
-                    Button {
-                        editedName = displayName == "there" ? "" : displayName
-                        showEditNameSheet = true
-                    } label: {
-                        HStack(spacing: 10) {
-                            Text(displayName)
-                                .font(.custom("DMSans-SemiBold", size: 24))
-                                .foregroundColor(.black)
-
-                            Image(systemName: "pencil.line")
-                                .font(.system(size: 24, weight: .medium))
-                                .foregroundColor(.black)
+                            Text("Get quiet reminders during your day.")
+                                .font(.system(size: 14, weight: .regular))
+                                .foregroundColor(Color("SubtitleColor"))
+                                .padding(.leading, 6)
                         }
-                        .padding(.horizontal, 36)
-                        .frame(height: 52)
-                        .background(Color.black.opacity(0.06))
-                        .cornerRadius(40)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 46)
+
+                        // MARK: - About Section
+                        VStack(alignment: .leading, spacing: 18) {
+                            Text("About")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(Color("TitleColor"))
+                                .padding(.leading, 14)
+
+                            ProfileAboutRow(
+                                icon: "questionmark",
+                                title: "Help & support"
+                            )
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 34)
+
+                        Button(action: {
+                            print("Delete account tapped")
+                        }) {
+                            Text("Delete account")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(Color("SubtitleColor"))
+                                .underline()
+                        }
+                        .padding(.top, 60)
+                        .padding(.bottom, 62)
                     }
-                    .buttonStyle(.plain)
-                    .padding(.top, 14)
-
-                    Text("Noticing since April 22")
-                        .font(.custom("DMSans-Regular", size: 16))
-                        .foregroundColor(Color(hex: "6F6F6F"))
-                        .padding(.top, 12)
-
-                    // MARK: - Notification Section
-                    VStack(alignment: .leading, spacing: 18) {
-                        Text("Notification")
-                            .font(.custom("DMSans-SemiBold", size: 20))
-                            .foregroundColor(Color(hex: "252525"))
-                            .padding(.leading, 14)
-
-                        ProfileToggleRow(
-                            icon: "position-icon",
-                            title: "When you arrive",
-                            isOn: $whenYouArriveEnabled
-                        )
-
-                        Text("Receive a notification when you Enter the location")
-                            .font(.custom("DMSans-Regular", size: 14))
-                            .foregroundColor(Color(hex: "6F6F6F"))
-                            .padding(.leading, 6)
-
-                        ProfileToggleRow(
-                            icon: "Don’t-disturb",
-                            title: "Don’t disturb",
-                            isOn: $dontDisturbEnabled
-                        )
-
-                        Text("Get notification while your day")
-                            .font(.custom("DMSans-Regular", size: 14))
-                            .foregroundColor(Color(hex: "6F6F6F"))
-                            .padding(.leading, 6)
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 46)
-
-                    // MARK: - About Section
-                    VStack(alignment: .leading, spacing: 18) {
-                        Text("About")
-                            .font(.custom("DMSans-SemiBold", size: 20))
-                            .foregroundColor(Color(hex: "252525"))
-                            .padding(.leading, 14)
-
-                        ProfileAboutRow(
-                            icon: "questionmark",
-                            title: "Help& support"
-                        )
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 34)
-
-                    Button(action: {
-                        print("Delete account tapped")
-                    }) {
-                        Text("Delete an account")
-                            .font(.custom("DMSans-SemiBold", size: 16))
-                            .foregroundColor(Color(hex: "6F6F6F"))
-                            .underline()
-                    }
-                    .padding(.top, 60)
-                    .padding(.bottom, 62)
+                    .padding(.top, 20)
                 }
             }
         }
@@ -196,6 +188,50 @@ struct ProfileView: View {
             .presentationDetents([.height(260)])
             .presentationDragIndicator(.visible)
         }
+    }
+
+    private var profileHeader: some View {
+        HStack(alignment: .center, spacing: 16) {
+
+            Button(action: { dismiss() }) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 23, weight: .medium))
+                    .foregroundColor(Color("TitleColor"))
+                    .frame(width: 58, height: 58)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle()
+                            .strokeBorder(
+                                Color("TitleColor").opacity(0.08),
+                                lineWidth: 1
+                            )
+                    )
+                    .shadow(
+                        color: .black.opacity(0.08),
+                        radius: 12,
+                        x: 0,
+                        y: 6
+                    )
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Back")
+
+            Text("Profile")
+                .font(.custom("DMSans-Bold", size: 24, relativeTo: .title2))
+                .foregroundColor(Color("TitleColor"))
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+                .accessibilityAddTraits(.isHeader)
+
+            Color.clear
+                .frame(width: 58, height: 58)
+                .accessibilityHidden(true)
+        }
+        .padding(.horizontal, 24)
+        .frame(maxWidth: .infinity)
     }
 
     private func saveName() {
@@ -232,11 +268,11 @@ private struct EditProfileNameSheet: View {
     var body: some View {
         VStack(spacing: 18) {
             Text("Edit name")
-                .font(.custom("DMSans-SemiBold", size: 22))
+                .font(.system(size: 22, weight: .bold))
                 .foregroundColor(Color("TitleColor"))
 
             TextField("Enter your name", text: $name)
-                .font(.custom("DMSans-Regular", size: 16))
+                .font(.system(size: 16, weight: .regular))
                 .padding()
                 .frame(height: 52)
                 .background(Color.black.opacity(0.06))
@@ -248,8 +284,8 @@ private struct EditProfileNameSheet: View {
             HStack(spacing: 12) {
                 Button(action: onCancel) {
                     Text("Cancel")
-                        .font(.custom("DMSans-Regular", size: 16))
-                        .foregroundColor(.black)
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundColor(Color("TitleColor"))
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
                         .background(Color.black.opacity(0.06))
@@ -258,7 +294,7 @@ private struct EditProfileNameSheet: View {
 
                 Button(action: onSave) {
                     Text("Save")
-                        .font(.custom("DMSans-SemiBold", size: 16))
+                        .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
@@ -294,8 +330,8 @@ private struct ProfileToggleRow: View {
             }
 
             Text(title)
-                .font(.custom("DMSans-Bold", size: 16))
-                .foregroundColor(Color(hex: "252525"))
+                .font(.system(size: 16, weight: .bold))
+                .foregroundColor(Color("TitleColor"))
 
             Spacer()
 
@@ -324,12 +360,12 @@ private struct ProfileAboutRow: View {
 
                 Image(systemName: icon)
                     .font(.system(size: 18, weight: .regular))
-                    .foregroundColor(.black)
+                    .foregroundColor(Color("TitleColor"))
             }
 
             Text(title)
-                .font(.custom("DMSans-Bold", size: 20))
-                .foregroundColor(Color(hex: "252525"))
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(Color("TitleColor"))
 
             Spacer()
         }

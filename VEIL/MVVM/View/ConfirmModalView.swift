@@ -11,7 +11,6 @@ struct ConfirmModalView: View {
     var onBack: () -> Void
     var onContinue: (_ placeName: String, _ activeDays: Int) -> Void
 
-    // MARK: - Adjust Horizontal Positions
     var chevronOffsetX: CGFloat = -20
     var titleOffsetX: CGFloat = -15
 
@@ -30,7 +29,6 @@ struct ConfirmModalView: View {
 
         VStack(spacing: 20) {
 
-            // MARK: - Header
             HStack {
 
                 Button(action: onBack) {
@@ -39,87 +37,99 @@ struct ConfirmModalView: View {
                         .foregroundColor(.black)
                 }
                 .offset(x: chevronOffsetX)
+                .accessibilityLabel("Back")
+                .accessibilityHint("Closes place details and returns to the map")
 
                 Text("Place’s details")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.veilHeadline)
                     .foregroundColor(.black)
                     .offset(x: titleOffsetX)
+                    .accessibilityAddTraits(.isHeader)
 
                 Spacer()
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal)
 
-            // MARK: - Place Name Label
             Text("Name The Place")
-                .font(.system(size: 13))
+                .font(.veilCaption)
                 .foregroundColor(.black)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 5)
                 .padding(.bottom, -8)
 
-            // MARK: - Place Name TextField
-            TextField("Enter name", text: $placeName)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.black)
-                .padding()
-                .frame(maxWidth: .infinity)
-                .frame(height: 50)
-                .background(Color.white)
-                .cornerRadius(25)
-                .padding(.horizontal, 5)
-                .textInputAutocapitalization(.words)
-                .autocorrectionDisabled(true)
+            TextField(
+                "Enter name",
+                text: $placeName,
+                prompt: Text("Enter name")
+            )
+            .font(.veilBody)
+            .foregroundColor(.black)
+            .padding()
+            .frame(maxWidth: .infinity)
+            .frame(height: 50)
+            .background(Color.white)
+            .cornerRadius(25)
+            .padding(.horizontal, 5)
+            .textInputAutocapitalization(.words)
+            .autocorrectionDisabled(true)
+            .accessibilityLabel("Place name")
+            .accessibilityHint("Enter a name for this place")
+            .accessibilityValue(placeName.isEmpty ? "Empty" : placeName)
 
-            // MARK: - Active Period Label
-            Text("Active Period ( \(Int(activeDays)) days )")
-                .font(.system(size: 13))
+            Text("Active Period")
+                .font(.veilCaption)
                 .foregroundColor(.black)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 5)
                 .padding(.top, -4)
+                .accessibilityHidden(true)
 
-            // MARK: - Active Period Slider
             HStack {
 
                 Text("1")
-                    .font(.system(size: 13))
+                    .font(.veilCaption)
                     .foregroundColor(.gray)
+                    .accessibilityHidden(true)
 
                 Slider(value: $activeDays, in: 1...7, step: 1)
                     .tint(Color("InnerCircle3"))
+                    .accessibilityLabel("Active period")
+                    .accessibilityValue("\(Int(activeDays)) days")
+                    .accessibilityHint("Swipe up or down to change the number of active days")
 
                 Text("7")
-                    .font(.system(size: 13))
+                    .font(.veilCaption)
                     .foregroundColor(.gray)
+                    .accessibilityHidden(true)
             }
             .padding(.horizontal, 5)
             .padding(.bottom, -8)
 
-            // MARK: - Helper Text
             HStack(spacing: 2) {
 
                 Image(systemName: "exclamationmark.circle")
                     .font(.system(size: 14))
                     .foregroundColor(.black)
+                    .accessibilityHidden(true)
 
                 Text("This place will stay active for your selected period")
-                    .font(.system(size: 10))
+                    .font(.veilSmallCaption)
                     .foregroundColor(.black.opacity(0.8))
-                    .lineLimit(1)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 Spacer()
             }
             .padding(.horizontal, 5)
             .padding(.top, 4)
 
-            // MARK: - Add Place Button
             Button(action: {
                 onContinue(trimmedPlaceName, Int(activeDays))
             }) {
 
                 Text("Add place")
-                    .font(.system(size: 18, weight: .medium))
+                    .font(.veilHeadline)
                     .foregroundColor(.white)
                     .frame(maxWidth: 150)
                     .frame(height: 58)
@@ -130,6 +140,12 @@ struct ConfirmModalView: View {
             .disabled(!canAddPlace)
             .padding(.top, 6)
             .padding(.bottom, 10)
+            .accessibilityLabel("Add place")
+            .accessibilityHint(
+                canAddPlace
+                ? "Adds this place with an active period of \(Int(activeDays)) days"
+                : "Enter a place name first"
+            )
         }
         .padding(24)
         .frame(height: 360)
@@ -137,23 +153,11 @@ struct ConfirmModalView: View {
             VisualEffectBlur(style: .systemMaterialLight)
                 .clipShape(RoundedRectangle(cornerRadius: 24))
                 .shadow(radius: 10)
+                .accessibilityHidden(true)
         )
         .padding(.horizontal, 25)
         .transition(.move(edge: .bottom).combined(with: .opacity))
-    }
-}
-
-#Preview {
-    ZStack {
-        Color.gray.opacity(0.2).ignoresSafeArea()
-
-        ConfirmModalView(
-            address: "Riyadh, Saudi Arabia",
-            onBack: {},
-            onContinue: { placeName, activeDays in
-                print(placeName)
-                print(activeDays)
-            }
-        )
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(.isModal)
     }
 }

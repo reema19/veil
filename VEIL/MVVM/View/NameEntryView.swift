@@ -23,7 +23,6 @@ struct NameEntryView: View {
     private let growSpeed: Double = 2.55
     private let growDamping: Double = 0.90
 
-    // This controls how long the grown background stays before Mainpage appears
     private let growHoldDuration: Double = 1.0
 
     private var isNameEmpty: Bool {
@@ -35,15 +34,17 @@ struct NameEntryView: View {
             VStack(alignment: .leading, spacing: 22) {
 
                 Text("What’s your name?")
-                    .font(.system(size: 24, weight: .bold))
+                    .font(.veilTitle)
                     .foregroundColor(Color("TitleColor"))
                     .opacity(hideTextContent ? 0 : 1)
                     .offset(y: hideTextContent ? -8 : 0)
+                    .accessibilityAddTraits(.isHeader)
 
                 Text("Your display name for the app experience")
-                    .font(.system(size: 16, weight: .regular))
+                    .font(.veilBody)
                     .foregroundColor(Color("TitleColor").opacity(0.75))
-                    .lineLimit(1)
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
                     .opacity(hideTextContent ? 0 : 1)
                     .offset(y: hideTextContent ? -8 : 0)
 
@@ -60,6 +61,7 @@ struct NameEntryView: View {
                                 .spring(response: growSpeed, dampingFraction: growDamping),
                                 value: expandWhiteCapsule
                             )
+                            .accessibilityHidden(true)
 
                         Capsule()
                             .stroke(
@@ -68,14 +70,29 @@ struct NameEntryView: View {
                             )
                             .frame(width: 245, height: 48)
                             .opacity(hideFieldContent ? 0 : 1)
+                            .accessibilityHidden(true)
 
-                        TextField("", text: $name)
-                            .font(.system(size: 15, weight: .regular))
-                            .foregroundColor(Color("TitleColor"))
-                            .padding(.horizontal, 12)
-                            .frame(width: 245, height: 48)
-                            .opacity(hideFieldContent ? 0 : 1)
-                            .focused($isNameFieldFocused)
+                        TextField(
+                            "Enter your name",
+                            text: $name,
+                            prompt: Text("Enter your name")
+                                .foregroundColor(Color("SubtitleColor"))
+                        )
+                        .font(.veilBody)
+                        .foregroundColor(Color("TitleColor"))
+                        .textInputAutocapitalization(.words)
+                        .autocorrectionDisabled()
+                        .submitLabel(.done)
+                        .onSubmit {
+                            submitName()
+                        }
+                        .padding(.horizontal, 12)
+                        .frame(width: 245, height: 48)
+                        .opacity(hideFieldContent ? 0 : 1)
+                        .focused($isNameFieldFocused)
+                        .accessibilityLabel("Name")
+                        .accessibilityHint("Enter your name to personalize the app experience")
+                        .accessibilityValue(name.isEmpty ? "Empty" : name)
                     }
                     .frame(width: 245, height: 48)
 
@@ -94,6 +111,12 @@ struct NameEntryView: View {
                     .opacity(hideFieldContent ? 0 : (isNameEmpty ? 0.45 : 1))
                     .scaleEffect(hideFieldContent ? 0.85 : 1)
                     .disabled(isNameEmpty || isSubmitting)
+                    .accessibilityLabel("Continue")
+                    .accessibilityHint(
+                        isNameEmpty
+                        ? "Enter your name first"
+                        : "Saves your name and continues to the app"
+                    )
                 }
             }
         }
@@ -105,22 +128,17 @@ struct NameEntryView: View {
         guard !isSubmitting else { return }
 
         isSubmitting = true
-
-        // Hide keyboard once chevron is clicked
         isNameFieldFocused = false
 
-        // 1. Hide text, field content, and chevron
         withAnimation(.easeInOut(duration: contentFadeDuration)) {
             hideTextContent = true
             hideFieldContent = true
         }
 
-        // 2. Start background grow
         DispatchQueue.main.asyncAfter(deadline: .now() + growStartDelay) {
             expandWhiteCapsule = true
         }
 
-        // 3. Wait, then show Mainpage
         DispatchQueue.main.asyncAfter(deadline: .now() + growHoldDuration) {
             onSubmit()
         }

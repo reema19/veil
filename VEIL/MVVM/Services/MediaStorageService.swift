@@ -5,6 +5,7 @@
 //  Created by reema aljohani on 5/30/26.
 //
 
+
 import Foundation
 import UIKit
 
@@ -21,22 +22,28 @@ final class MediaStorageService {
         ).first!
     }
 
+    // MARK: - Shared Media URL
+
+    func mediaURL(fileName: String) -> URL {
+        documentsDirectory.appendingPathComponent(fileName)
+    }
+
     // MARK: - Save Photo
 
     func savePhoto(_ image: UIImage) throws -> String {
 
         let fileName = "photo-\(UUID().uuidString).jpg"
-
         let url = documentsDirectory.appendingPathComponent(fileName)
 
         guard let data = image.jpegData(compressionQuality: 0.85) else {
             throw NSError(
                 domain: "MediaStorage",
-                code: 1
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Could not convert UIImage to JPEG data."]
             )
         }
 
-        try data.write(to: url)
+        try data.write(to: url, options: [.atomic])
 
         return fileName
     }
@@ -61,9 +68,7 @@ final class MediaStorageService {
     ) throws -> String {
 
         let fileName = "audio-\(UUID().uuidString).m4a"
-
-        let destinationURL =
-            documentsDirectory.appendingPathComponent(fileName)
+        let destinationURL = documentsDirectory.appendingPathComponent(fileName)
 
         try FileManager.default.moveItem(
             at: temporaryURL,

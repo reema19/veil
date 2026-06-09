@@ -9,28 +9,69 @@ struct PresenceSummaryPlaceholderView: View {
 
     let totalTime: String
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var isAccessibilitySize: Bool {
+        dynamicTypeSize.isAccessibilitySize
+    }
+
+    private var haloSize: CGFloat {
+        isAccessibilitySize ? 320 : 270
+    }
+
+    private var containerHeight: CGFloat {
+        isAccessibilitySize ? 340 : 290
+    }
+
     var body: some View {
 
         ZStack {
 
-            PresenceBreathRing(size: 270)
+            PresenceBreathRing(size: haloSize)
 
-            VStack(spacing: 4) {
+            VStack(spacing: isAccessibilitySize ? 8 : 4) {
 
                 Text("total")
-                    .font(.system(size: 13, weight: .regular))
+                    .font(
+                        .custom(
+                            "DMSans-Regular",
+                            size: 13,
+                            relativeTo: .caption
+                        )
+                    )
                     .foregroundColor(Color("SubtitleColor"))
+                    .lineLimit(1)
 
                 Text(totalTime)
-                    .font(.system(size: 22, weight: .bold))
+                    .font(
+                        .custom(
+                            "DMSans-Bold",
+                            size: 22,
+                            relativeTo: .title2
+                        )
+                    )
                     .foregroundColor(Color("TitleColor"))
+                    .minimumScaleFactor(0.8)
+                    .multilineTextAlignment(.center)
 
                 Text("time present")
-                    .font(.system(size: 12, weight: .regular))
+                    .font(
+                        .custom(
+                            "DMSans-Regular",
+                            size: 12,
+                            relativeTo: .caption
+                        )
+                    )
                     .foregroundColor(Color("SubtitleColor"))
+                    .lineLimit(nil)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+            .padding(.horizontal, 24)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Total presence time \(totalTime)")
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 290)
+        .frame(height: containerHeight)
     }
 }

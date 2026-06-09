@@ -5,6 +5,7 @@
 //  Created by Ghady Al Omar on 07/12/1447 AH.
 //
 
+
 import SwiftUI
 import AVFoundation
 import SwiftData
@@ -55,6 +56,7 @@ struct CameraView: View {
                                     y: 6
                                 )
                         }
+                        .buttonStyle(.plain)
 
                         Spacer()
                     }
@@ -114,6 +116,8 @@ struct CameraView: View {
                                 name: .observationSavedGoHome,
                                 object: nil
                             )
+
+                            showSavedSheet = false
                             dismiss()
                         }
                     )
@@ -166,6 +170,20 @@ struct CameraView: View {
         do {
             let fileName = try MediaStorageService.shared.savePhoto(image)
 
+            let photoURL = MediaStorageService.shared.mediaURL(fileName: fileName)
+            let exists = FileManager.default.fileExists(atPath: photoURL.path)
+            let size = ((try? FileManager.default.attributesOfItem(atPath: photoURL.path)[.size]) as? NSNumber)?.intValue ?? 0
+
+            print("Photo saved fileName:", fileName)
+            print("Photo exists:", exists)
+            print("Photo size:", size)
+            print("Photo URL:", photoURL.path)
+
+            guard exists, size > 0 else {
+                print("Photo file was not written correctly")
+                return
+            }
+
             guard let place = try fetchPlace(with: draft.placeID) else {
                 print("Could not find place for sight observation")
                 return
@@ -181,6 +199,8 @@ struct CameraView: View {
 
             modelContext.insert(observation)
             try modelContext.save()
+
+            print("Sight observation saved in SwiftData with media:", fileName)
 
             withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
                 showSavedSheet = true

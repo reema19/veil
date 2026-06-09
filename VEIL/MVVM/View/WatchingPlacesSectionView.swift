@@ -10,30 +10,48 @@ struct WatchingPlacesSectionView: View {
     let places: [Place]
     var onAddPlaceTap: () -> Void
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     @State private var selectedIndex: Int = 0
     @State private var dragOffset: CGFloat = 0
 
-    private let cardWidth: CGFloat = 320
-    private let cardHeight: CGFloat = 210
+    private var isAccessibilitySize: Bool {
+        dynamicTypeSize.isAccessibilitySize
+    }
 
-    private let sideOffset: CGFloat = 260
+    private var cardWidth: CGFloat {
+        isAccessibilitySize ? 360 : 320
+    }
+
+    private var cardHeight: CGFloat {
+        isAccessibilitySize ? 260 : 210
+    }
+
+    private var sideOffset: CGFloat {
+        isAccessibilitySize ? 300 : 260
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 22) {
+        VStack(alignment: .leading, spacing: isAccessibilitySize ? 28 : 22) {
 
-            HStack(alignment: .center) {
+            HStack(alignment: .center, spacing: 16) {
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Places you're watching")
-                        .font(.system(size: 20, weight: .bold))
+                        .font(.custom("DMSans-Bold", size: 20, relativeTo: .title3))
                         .foregroundColor(Color("TitleColor"))
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
 
                     Text("Slowly noticing what surrounds you.")
-                        .font(.system(size: 12, weight: .regular))
+                        .font(.custom("DMSans-Regular", size: 12, relativeTo: .body))
                         .foregroundColor(Color("SubtitleColor"))
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
-                Spacer()
+                Spacer(minLength: 12)
 
                 Button(action: onAddPlaceTap) {
                     Image(systemName: "plus")
@@ -56,6 +74,8 @@ struct WatchingPlacesSectionView: View {
                             y: 4
                         )
                 }
+                .accessibilityLabel("Add place")
+                .accessibilityHint("Adds a new place to observe")
             }
 
             if places.isEmpty {
@@ -80,6 +100,7 @@ struct WatchingPlacesSectionView: View {
                     .frame(width: cardWidth, height: cardHeight)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Open \(places[index].name)")
                 .scaleEffect(scale(for: index))
                 .opacity(opacity(for: index))
                 .zIndex(zIndex(for: index))
@@ -87,7 +108,7 @@ struct WatchingPlacesSectionView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .frame(height: cardHeight + 20)
+        .frame(height: cardHeight + 24)
         .contentShape(Rectangle())
         .gesture(
             DragGesture()
@@ -113,10 +134,12 @@ struct WatchingPlacesSectionView: View {
     }
 
     private func moveToNextCard() {
+        guard !places.isEmpty else { return }
         selectedIndex = (selectedIndex + 1) % places.count
     }
 
     private func moveToPreviousCard() {
+        guard !places.isEmpty else { return }
         selectedIndex = (selectedIndex - 1 + places.count) % places.count
     }
 
@@ -159,9 +182,9 @@ struct WatchingPlacesSectionView: View {
 
         switch position {
         case 0:
-            return 1.08
+            return isAccessibilitySize ? 1.0 : 1.08
         case -1, 1:
-            return 0.82
+            return isAccessibilitySize ? 0.86 : 0.82
         default:
             return 0.82
         }

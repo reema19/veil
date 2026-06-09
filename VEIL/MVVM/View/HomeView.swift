@@ -9,6 +9,7 @@ import SwiftData
 struct HomeView: View {
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @Query(
         filter: #Predicate<Place> { place in
@@ -37,6 +38,18 @@ struct HomeView: View {
     @State private var showMaxPlacesAlert = false
 
     private let lifecycleService = PlaceLifecycleService()
+
+    private var isAccessibilitySize: Bool {
+        dynamicTypeSize.isAccessibilitySize
+    }
+
+    private var pageSpacing: CGFloat {
+        isAccessibilitySize ? 32 : 26
+    }
+
+    private var horizontalPadding: CGFloat {
+        isAccessibilitySize ? 20 : 24
+    }
 
     private var totalPresenceTime: String {
         let totalSeconds = activePlaces.reduce(0) { $0 + $1.totalPresenceSeconds }
@@ -69,7 +82,7 @@ struct HomeView: View {
         }
         .safeAreaInset(edge: .bottom) {
             MainTabBar(selectedTab: $selectedTab)
-                .padding(.horizontal, 40)
+                .padding(.horizontal, isAccessibilitySize ? 24 : 40)
                 .padding(.bottom, 8)
         }
         .onAppear {
@@ -101,7 +114,7 @@ struct HomeView: View {
 
     private var homeContent: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 26) {
+            VStack(alignment: .leading, spacing: pageSpacing) {
 
                 HomeHeaderView(
                     userName: displayName,
@@ -112,12 +125,17 @@ struct HomeView: View {
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Moments of presence")
-                        .font(.system(size: 20, weight: .bold))
+                        .font(.custom("DMSans-Bold", size: 20, relativeTo: .title3))
                         .foregroundColor(Color("TitleColor"))
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
 
                     Text("Small moments of attention add up over time.")
-                        .font(.system(size: 13, weight: .regular))
+                        .font(.custom("DMSans-Regular", size: 13, relativeTo: .body))
                         .foregroundColor(Color("SubtitleColor"))
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 PresenceSummaryPlaceholderView(
@@ -131,9 +149,9 @@ struct HomeView: View {
                     }
                 )
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, horizontalPadding)
             .padding(.top, 20)
-            .padding(.bottom, 110)
+            .padding(.bottom, isAccessibilitySize ? 140 : 110)
         }
     }
 

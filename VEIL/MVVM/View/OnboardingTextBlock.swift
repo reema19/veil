@@ -1,13 +1,6 @@
-//
+
 //  OnboardingTextBlock.swift
 //  VEIL
-//
-//  Created by Ghady Al Omar on 06/12/1447 AH.
-//
-
-//
-//  OnboardingTextBlock.swift
-//  ghady
 //
 
 import SwiftUI
@@ -16,16 +9,37 @@ struct OnboardingTextBlock: View {
     let title: String
     let subtitle: String
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var isAccessibilitySize: Bool {
+        dynamicTypeSize.isAccessibilitySize
+    }
+
+    private var textSpacing: CGFloat {
+        isAccessibilitySize ? 16 : 10
+    }
+
+    private var horizontalPadding: CGFloat {
+        isAccessibilitySize ? 28 : 32
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: textSpacing) {
             Text(title)
-                .font(.system(size: 36, weight: .bold))
+                .font(.veilHero)
                 .foregroundColor(Color("TitleColor"))
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+
             Text(subtitle)
-                .font(.system(size: 18).italic())
+                .font(.veilBody)
+                .italic()
                 .foregroundColor(Color("SubtitleColor"))
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 32)
+        .padding(.horizontal, horizontalPadding)
     }
 }

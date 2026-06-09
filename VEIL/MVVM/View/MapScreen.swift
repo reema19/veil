@@ -37,8 +37,12 @@ struct MapScreen: View {
                             x: UIScreen.main.bounds.width / 2,
                             y: UIScreen.main.bounds.height / 2
                         )
+                        .accessibilityHidden(true)
                 )
                 .ignoresSafeArea()
+                .accessibilityHidden(showModal)
+                .accessibilityLabel("Map")
+                .accessibilityHint("Shows your current selected location")
 
             // MARK: - Bottom Map Controls
             VStack {
@@ -64,9 +68,14 @@ struct MapScreen: View {
                     .padding(.horizontal, 28)
                 }
             }
+            .accessibilityHidden(showModal)
 
             // MARK: - Place Details Modal
             if showModal {
+
+                Color.black.opacity(0.001)
+                    .ignoresSafeArea()
+                    .accessibilityHidden(true)
 
                 ConfirmModalView(
                     address: viewModel.currentAddress,
@@ -95,11 +104,13 @@ struct MapScreen: View {
                     alignment: .center
                 )
                 .transition(.scale.combined(with: .opacity))
+                .accessibilitySortPriority(10)
             }
         }
         .animation(.easeInOut, value: showModal)
-        .navigationTitle("Select Location")
+        .navigationTitle(showModal ? "Place details" : "Select Location")
         .navigationBarTitleDisplayMode(.inline)
+        .accessibilityElement(children: .contain)
         .onAppear {
             viewModel.startLocationUpdates()
         }
