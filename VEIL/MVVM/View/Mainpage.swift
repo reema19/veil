@@ -7,6 +7,7 @@ import SwiftUI
 import SwiftData
 
 struct Mainpage: View {
+    
 
     @Environment(\.modelContext) private var modelContext
 
@@ -26,7 +27,8 @@ struct Mainpage: View {
     @StateObject private var locationPermissionViewModel = LocationPermissionViewModel()
 
     @State private var goToMapScreen = false
-
+    @AppStorage("whenYouArriveEnabled")
+    private var whenYouArriveEnabled = true
     @State private var showHeader = false
     @State private var showEmptyState = false
     @State private var showAddButton = false
@@ -215,6 +217,11 @@ struct Mainpage: View {
 
         do {
             try modelContext.save()
+            
+            if whenYouArriveEnabled {
+                LocationReminderManager.shared.startMonitoringPlace(place)
+            }
+            
         } catch {
             print("Failed to save place from Mainpage:", error)
         }

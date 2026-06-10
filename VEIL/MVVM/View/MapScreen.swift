@@ -58,7 +58,6 @@ struct MapScreen: View {
                         address: viewModel.currentAddress,
                         onConfirm: {
                             viewModel.stopLocationUpdates()
-                            viewModel.startMonitoringSelectedRegion(radius: radius)
 
                             withAnimation(.easeInOut) {
                                 showModal = true

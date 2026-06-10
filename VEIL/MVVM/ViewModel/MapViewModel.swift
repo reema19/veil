@@ -98,24 +98,6 @@ final class MapViewModel: NSObject, ObservableObject, CLLocationManagerDelegate 
         }
     }
 
-    func startMonitoringSelectedRegion(radius: CLLocationDistance) {
-        let center = region.center
-
-        let selectedRegion = CLCircularRegion(
-            center: center,
-            radius: radius,
-            identifier: "SelectedRegion"
-        )
-
-        selectedRegion.notifyOnEntry = true
-        selectedRegion.notifyOnExit = true
-
-        locationManager.requestAlwaysAuthorization()
-        locationManager.startMonitoring(for: selectedRegion)
-
-        print("Monitoring region at \(center.latitude), \(center.longitude) with radius = \(radius / 1000) km")
-    }
-
     func radiusToPixels(_ radius: CLLocationDistance) -> CGFloat {
         CGFloat(radius / 1000.0) * 150
     }

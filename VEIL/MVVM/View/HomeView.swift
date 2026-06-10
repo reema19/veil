@@ -37,6 +37,9 @@ struct HomeView: View {
     @State private var goToProfile = false
     @State private var showMaxPlacesAlert = false
 
+    @AppStorage("whenYouArriveEnabled")
+    private var whenYouArriveEnabled = true
+
     private let lifecycleService = PlaceLifecycleService()
 
     private var isAccessibilitySize: Bool {
@@ -191,6 +194,11 @@ struct HomeView: View {
 
         do {
             try modelContext.save()
+            
+            if whenYouArriveEnabled {
+                LocationReminderManager.shared.startMonitoringPlace(place)
+            }
+            
         } catch {
             print("Failed to save place:", error)
         }

@@ -16,8 +16,11 @@ struct ProfileView: View {
     @Query(sort: \LocalProfile.createdAt, order: .forward)
     private var profiles: [LocalProfile]
 
-    @State private var whenYouArriveEnabled = true
-    @State private var dontDisturbEnabled = true
+    @AppStorage("whenYouArriveEnabled")
+    private var whenYouArriveEnabled = true
+
+    @AppStorage("dontDisturbEnabled")
+    private var dontDisturbEnabled = false
 
     @State private var showEditNameSheet = false
     @State private var editedName = ""
@@ -124,6 +127,13 @@ struct ProfileView: View {
                                 title: "When you arrive",
                                 isOn: $whenYouArriveEnabled
                             )
+                            .onChange(of: whenYouArriveEnabled) { _, newValue in
+                                if newValue {
+                                    LocationReminderManager.shared.requestAlwaysLocationPermission()
+                                } else {
+                                    LocationReminderManager.shared.stopAllVEILPlaceMonitoring()
+                                }
+                            }
 
                             Text("Receive a notification when you enter the location.")
                                 .font(.system(size: 14, weight: .regular))
@@ -132,11 +142,14 @@ struct ProfileView: View {
 
                             ProfileToggleRow(
                                 icon: "Don’t-disturb",
-                                title: "Don’t disturb",
+                                title: "Morning reminder",
                                 isOn: $dontDisturbEnabled
                             )
+                            .onChange(of: dontDisturbEnabled) { _, newValue in
+                                handleMorningReminderToggleChanged(newValue)
+                            }
 
-                            Text("Get quiet reminders during your day.")
+                            Text("Receive a gentle reminder every morning at 9:00 AM.")
                                 .font(.system(size: 14, weight: .regular))
                                 .foregroundColor(Color("SubtitleColor"))
                                 .padding(.leading, 6)
@@ -232,6 +245,34 @@ struct ProfileView: View {
         }
         .padding(.horizontal, 24)
         .frame(maxWidth: .infinity)
+    }
+
+    private func handleMorningReminderToggleChanged(_ isEnabled: Bool) {
+        if isEnabled {
+            NotificationManager.shared.checkPermissionStatus { status in
+                switch status {
+                case .authorized, .provisional, .ephemeral:
+                    NotificationManager.shared.scheduleMorningReminder()
+
+                case .notDetermined:
+                    NotificationManager.shared.requestPermission { granted in
+                        if granted {
+                            NotificationManager.shared.scheduleMorningReminder()
+                        } else {
+                            dontDisturbEnabled = false
+                        }
+                    }
+
+                case .denied:
+                    dontDisturbEnabled = false
+
+                @unknown default:
+                    dontDisturbEnabled = false
+                }
+            }
+        } else {
+            NotificationManager.shared.cancelMorningReminder()
+        }
     }
 
     private func saveName() {

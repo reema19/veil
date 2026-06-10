@@ -4,17 +4,14 @@
 //
 //  Created by reema aljohani on 6/3/26.
 //
-//
-//  MomentSavedSheetView.swift
-//  VEIL
-//
 
 import SwiftUI
 
 struct MomentSavedSheetView: View {
+    
     let onClose: () -> Void
     let onDone: () -> Void
-
+    
     var body: some View {
         GeometryReader { geometry in
             let sheetWidth = geometry.size.width
@@ -84,7 +81,9 @@ struct MomentSavedSheetView: View {
                             y: sheetHeight * 0.60
                         )
 
-                    Button(action: onDone) {
+                    Button {
+                        handleDoneTapped()
+                    } label: {
                         Text("Done")
                             .font(.custom("DMSans-Bold", size: min(15 * scale, 15)))
                             .foregroundColor(.white)
@@ -104,6 +103,11 @@ struct MomentSavedSheetView: View {
             }
             .ignoresSafeArea(edges: .bottom)
         }
+    }
+    
+    private func handleDoneTapped() {
+        print("Done tapped in MomentSavedSheetView")
+        onDone()
     }
 }
 
