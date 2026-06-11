@@ -5,6 +5,7 @@
 
 import SwiftUI
 import SwiftData
+import CoreLocation
 
 struct HomeView: View {
 
@@ -36,6 +37,10 @@ struct HomeView: View {
     @State private var goToMapScreen = false
     @State private var goToProfile = false
     @State private var showMaxPlacesAlert = false
+
+    @State private var selectedPlaceToOpen: Place?
+    @State private var showLockedPlaceAlert = false
+    @State private var lockedPlaceMessage = ""
 
     @AppStorage("whenYouArriveEnabled")
     private var whenYouArriveEnabled = true
@@ -96,14 +101,20 @@ struct HomeView: View {
         } message: {
             Text("You can only watch 3 places at a time. Later, when one is deleted or finished, you can add another place.")
         }
+        .alert("Place locked", isPresented: $showLockedPlaceAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(lockedPlaceMessage)
+        }
         .navigationDestination(isPresented: $goToMapScreen) {
             MapScreen(
-                onPlaceAdded: { placeName, activeDays, latitude, longitude in
+                onPlaceAdded: { placeName, activeDays, latitude, longitude, radius in
                     addPlace(
                         name: placeName,
                         activeDays: activeDays,
                         latitude: latitude,
-                        longitude: longitude
+                        longitude: longitude,
+                        radiusMeters: radius
                     )
 
                     goToMapScreen = false
@@ -112,6 +123,9 @@ struct HomeView: View {
         }
         .navigationDestination(isPresented: $goToProfile) {
             ProfileView()
+        }
+        .navigationDestination(item: $selectedPlaceToOpen) { place in
+            SenseSelectionView(place: place)
         }
     }
 
@@ -149,6 +163,9 @@ struct HomeView: View {
                     places: Array(activePlaces.prefix(3)),
                     onAddPlaceTap: {
                         openMapIfAllowed()
+                    },
+                    onPlaceTap: { place in
+                        checkAccessAndOpen(place)
                     }
                 )
             }
@@ -167,11 +184,36 @@ struct HomeView: View {
         goToMapScreen = true
     }
 
+    private func checkAccessAndOpen(_ place: Place) {
+        PlaceAccessManager.shared.checkAccess(to: place) { result in
+            switch result {
+            case .allowed:
+                selectedPlaceToOpen = place
+
+            case .outside(let distance, let radius):
+                let distanceText = formatMeters(distance)
+                let radiusText = formatMeters(radius)
+
+                lockedPlaceMessage = "You need to be at \(place.name) to observe it."
+                showLockedPlaceAlert = true
+
+            case .locationPermissionDenied:
+                lockedPlaceMessage = "Location permission is needed to unlock this place. Please enable location access in Settings."
+                showLockedPlaceAlert = true
+
+            case .locationUnavailable:
+                lockedPlaceMessage = "We could not check your current location. Please try again."
+                showLockedPlaceAlert = true
+            }
+        }
+    }
+
     private func addPlace(
         name: String,
         activeDays: Int,
         latitude: Double,
-        longitude: Double
+        longitude: Double,
+        radiusMeters: CLLocationDistance
     ) {
         guard activePlaces.count < 3 else {
             showMaxPlacesAlert = true
@@ -187,6 +229,7 @@ struct HomeView: View {
             name: trimmedName,
             latitude: latitude,
             longitude: longitude,
+            radiusMeters: radiusMeters,
             activeDays: safeActiveDays
         )
 
@@ -194,11 +237,11 @@ struct HomeView: View {
 
         do {
             try modelContext.save()
-            
+
             if whenYouArriveEnabled {
                 LocationReminderManager.shared.startMonitoringPlace(place)
             }
-            
+
         } catch {
             print("Failed to save place:", error)
         }
@@ -210,6 +253,14 @@ struct HomeView: View {
         let remainingSeconds = seconds % 60
 
         return String(format: "%02d:%02d:%02d", hours, minutes, remainingSeconds)
+    }
+
+    private func formatMeters(_ meters: CLLocationDistance) -> String {
+        if meters >= 1000 {
+            return String(format: "%.1f km", meters / 1000)
+        } else {
+            return "\(Int(meters)) m"
+        }
     }
 }
 

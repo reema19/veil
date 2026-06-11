@@ -4,6 +4,7 @@
 //
 //  Created by reema aljohani on 5/30/26.
 //
+
 import Foundation
 import SwiftData
 
@@ -13,6 +14,7 @@ final class Place {
     var name: String
     var latitude: Double
     var longitude: Double
+    var radiusMeters: Double
     var activeStartDate: Date
     var activeEndDate: Date
     var statusRawValue: String
@@ -27,6 +29,7 @@ final class Place {
         name: String,
         latitude: Double,
         longitude: Double,
+        radiusMeters: Double = 1000,
         activeStartDate: Date = Date(),
         activeDays: Int
     ) {
@@ -34,6 +37,7 @@ final class Place {
         self.name = name
         self.latitude = latitude
         self.longitude = longitude
+        self.radiusMeters = radiusMeters
         self.activeStartDate = activeStartDate
         self.activeEndDate = Calendar.current.date(
             byAdding: .day,

@@ -4,10 +4,12 @@
 //
 
 import SwiftUI
+import CoreLocation
 
 struct ConfirmModalView: View {
 
     var address: String
+    var radius: CLLocationDistance
     var onBack: () -> Void
     var onContinue: (_ placeName: String, _ activeDays: Int) -> Void
 
@@ -21,8 +23,20 @@ struct ConfirmModalView: View {
         placeName.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    private var isRadiusAllowed: Bool {
+        radius == 5000
+    }
+
     private var canAddPlace: Bool {
-        !trimmedPlaceName.isEmpty
+        !trimmedPlaceName.isEmpty && isRadiusAllowed
+    }
+
+    private var radiusText: String {
+        if radius >= 1000 {
+            return "\(Int(radius / 1000)) km"
+        } else {
+            return "\(Int(radius)) m"
+        }
     }
 
     var body: some View {
@@ -124,6 +138,43 @@ struct ConfirmModalView: View {
             .padding(.horizontal, 5)
             .padding(.top, 4)
 
+            HStack(spacing: 2) {
+
+                Image(systemName: "location.circle")
+                    .font(.system(size: 14))
+                    .foregroundColor(.black)
+                    .accessibilityHidden(true)
+
+                Text("Selected radius: \(radiusText)")
+                    .font(.veilSmallCaption)
+                    .foregroundColor(.black.opacity(0.8))
+                    .lineLimit(nil)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Spacer()
+            }
+            .padding(.horizontal, 5)
+            .padding(.top, -8)
+
+            if !isRadiusAllowed {
+                HStack(spacing: 2) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.system(size: 13))
+                        .foregroundColor(.red.opacity(0.85))
+                        .accessibilityHidden(true)
+
+                    Text("5km Radius.")
+                        .font(.veilSmallCaption)
+                        .foregroundColor(.red.opacity(0.85))
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Spacer()
+                }
+                .padding(.horizontal, 5)
+                .padding(.top, -8)
+            }
+
             Button(action: {
                 onContinue(trimmedPlaceName, Int(activeDays))
             }) {
@@ -143,12 +194,12 @@ struct ConfirmModalView: View {
             .accessibilityLabel("Add place")
             .accessibilityHint(
                 canAddPlace
-                ? "Adds this place with an active period of \(Int(activeDays)) days"
+                ? "Adds this place with an active period of \(Int(activeDays)) days and a radius of \(radiusText)"
                 : "Enter a place name first"
             )
         }
         .padding(24)
-        .frame(height: 360)
+        .frame(height: isRadiusAllowed ? 390 : 420)
         .background(
             VisualEffectBlur(style: .systemMaterialLight)
                 .clipShape(RoundedRectangle(cornerRadius: 24))

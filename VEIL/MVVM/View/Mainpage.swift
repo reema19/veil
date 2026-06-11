@@ -5,9 +5,9 @@
 
 import SwiftUI
 import SwiftData
+import CoreLocation
 
 struct Mainpage: View {
-    
 
     @Environment(\.modelContext) private var modelContext
 
@@ -27,8 +27,10 @@ struct Mainpage: View {
     @StateObject private var locationPermissionViewModel = LocationPermissionViewModel()
 
     @State private var goToMapScreen = false
+
     @AppStorage("whenYouArriveEnabled")
     private var whenYouArriveEnabled = true
+
     @State private var showHeader = false
     @State private var showEmptyState = false
     @State private var showAddButton = false
@@ -133,12 +135,13 @@ struct Mainpage: View {
         }
         .navigationDestination(isPresented: $goToMapScreen) {
             MapScreen(
-                onPlaceAdded: { placeName, activeDays, latitude, longitude in
+                onPlaceAdded: { placeName, activeDays, latitude, longitude, radius in
                     addPlace(
                         name: placeName,
                         activeDays: activeDays,
                         latitude: latitude,
-                        longitude: longitude
+                        longitude: longitude,
+                        radiusMeters: radius
                     )
 
                     goToMapScreen = false
@@ -199,7 +202,8 @@ struct Mainpage: View {
         name: String,
         activeDays: Int,
         latitude: Double,
-        longitude: Double
+        longitude: Double,
+        radiusMeters: CLLocationDistance
     ) {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedName.isEmpty else { return }
@@ -210,6 +214,7 @@ struct Mainpage: View {
             name: trimmedName,
             latitude: latitude,
             longitude: longitude,
+            radiusMeters: radiusMeters,
             activeDays: safeActiveDays
         )
 
@@ -217,11 +222,11 @@ struct Mainpage: View {
 
         do {
             try modelContext.save()
-            
+
             if whenYouArriveEnabled {
                 LocationReminderManager.shared.startMonitoringPlace(place)
             }
-            
+
         } catch {
             print("Failed to save place from Mainpage:", error)
         }

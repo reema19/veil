@@ -9,6 +9,7 @@ struct WatchingPlacesSectionView: View {
 
     let places: [Place]
     var onAddPlaceTap: () -> Void
+    var onPlaceTap: (Place) -> Void
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -90,8 +91,8 @@ struct WatchingPlacesSectionView: View {
         ZStack {
             ForEach(places.indices, id: \.self) { index in
 
-                NavigationLink {
-                    SenseSelectionView(place: places[index])
+                Button {
+                    onPlaceTap(places[index])
                 } label: {
                     WatchingPlaceCardView(
                         place: places[index],

@@ -12,9 +12,16 @@ struct ProfileView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
 
     @Query(sort: \LocalProfile.createdAt, order: .forward)
     private var profiles: [LocalProfile]
+
+    @Query
+    private var places: [Place]
+
+    @Query
+    private var observations: [PlaceObservation]
 
     @AppStorage("whenYouArriveEnabled")
     private var whenYouArriveEnabled = true
@@ -24,6 +31,10 @@ struct ProfileView: View {
 
     @State private var showEditNameSheet = false
     @State private var editedName = ""
+
+    @State private var showDeleteAccountAlert = false
+
+    private let supportEmail = "we.app.veil@gmail.com"
 
     private var profile: LocalProfile? {
         profiles.first
@@ -37,6 +48,21 @@ struct ProfileView: View {
     private var avatarInitial: String {
         let trimmed = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
         return String(trimmed.prefix(1)).uppercased()
+    }
+
+    private var noticingSinceText: String {
+        guard let createdAt = profile?.createdAt else {
+            return "Noticing since today"
+        }
+
+        let formattedDate = createdAt.formatted(
+            .dateTime
+                .month(.abbreviated)
+                .day()
+                .year()
+        )
+
+        return "Noticing since \(formattedDate)"
     }
 
     var body: some View {
@@ -110,7 +136,7 @@ struct ProfileView: View {
                         .buttonStyle(.plain)
                         .padding(.top, 14)
 
-                        Text("Noticing since April 22")
+                        Text(noticingSinceText)
                             .font(.system(size: 16, weight: .regular))
                             .foregroundColor(Color("SubtitleColor"))
                             .padding(.top, 12)
@@ -164,17 +190,22 @@ struct ProfileView: View {
                                 .foregroundColor(Color("TitleColor"))
                                 .padding(.leading, 14)
 
-                            ProfileAboutRow(
-                                icon: "questionmark",
-                                title: "Help & support"
-                            )
+                            Button {
+                                openSupportEmail()
+                            } label: {
+                                ProfileAboutRow(
+                                    icon: "questionmark",
+                                    title: "Help & support"
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
                         .padding(.horizontal, 20)
                         .padding(.top, 34)
 
-                        Button(action: {
-                            print("Delete account tapped")
-                        }) {
+                        Button {
+                            showDeleteAccountAlert = true
+                        } label: {
                             Text("Delete account")
                                 .font(.system(size: 16, weight: .semibold))
                                 .foregroundColor(Color("SubtitleColor"))
@@ -200,6 +231,15 @@ struct ProfileView: View {
             )
             .presentationDetents([.height(260)])
             .presentationDragIndicator(.visible)
+        }
+        .alert("Delete account?", isPresented: $showDeleteAccountAlert) {
+            Button("Cancel", role: .cancel) { }
+
+            Button("Delete", role: .destructive) {
+                deleteAccount()
+            }
+        } message: {
+            Text("This will delete your profile, saved places, observations, and cancel VEIL notifications. This action cannot be undone.")
         }
     }
 
@@ -275,6 +315,17 @@ struct ProfileView: View {
         }
     }
 
+    private func openSupportEmail() {
+        let subject = "VEIL Help & Support"
+
+        guard let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let url = URL(string: "mailto:\(supportEmail)?subject=\(encodedSubject)") else {
+            return
+        }
+
+        openURL(url)
+    }
+
     private func saveName() {
         let trimmedName = editedName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedName.isEmpty else { return }
@@ -291,6 +342,38 @@ struct ProfileView: View {
             showEditNameSheet = false
         } catch {
             print("Failed to update profile name:", error)
+        }
+    }
+
+    private func deleteAccount() {
+        // Stop all VEIL notifications and location monitoring first.
+        NotificationManager.shared.cancelMorningReminder()
+        LocationReminderManager.shared.stopAllVEILPlaceMonitoring()
+
+        // Reset profile toggles.
+        whenYouArriveEnabled = false
+        dontDisturbEnabled = false
+
+        // Delete observations first.
+        for observation in observations {
+            modelContext.delete(observation)
+        }
+
+        // Delete saved places.
+        for place in places {
+            modelContext.delete(place)
+        }
+
+        // Delete local profile.
+        for profile in profiles {
+            modelContext.delete(profile)
+        }
+
+        do {
+            try modelContext.save()
+            dismiss()
+        } catch {
+            print("Failed to delete account:", error)
         }
     }
 }
@@ -409,6 +492,10 @@ private struct ProfileAboutRow: View {
                 .foregroundColor(Color("TitleColor"))
 
             Spacer()
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(Color("SubtitleColor"))
         }
         .padding(.horizontal, 22)
         .frame(height: 72)
