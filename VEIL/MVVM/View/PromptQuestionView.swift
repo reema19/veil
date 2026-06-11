@@ -154,7 +154,7 @@ struct PromptQuestionView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: height * 0.34)
-                    .padding(.top, height * 0.045)
+                    .padding(.top, height * 0.119)
 
                     VStack(spacing: 10) {
                         if !viewModel.isLoadingPrompts {
@@ -174,7 +174,7 @@ struct PromptQuestionView: View {
                         }
                     }
                     .opacity(isObservationActive ? 0 : 1)
-                    .padding(.top, 34)
+                    .padding(.top, 54)
 
                     Spacer()
 
@@ -244,7 +244,7 @@ struct PromptQuestionView: View {
                         .disabled(viewModel.isLoadingPrompts || isTypingPrompt)
                         .opacity((viewModel.isLoadingPrompts || isTypingPrompt) ? 0.45 : 1)
                     }
-                    .padding(.bottom, height * 0.045)
+                    .padding(.bottom, height * 0.015)
                 }
             }
         }

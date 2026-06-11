@@ -10,6 +10,7 @@ struct WatchingPlacesSectionView: View {
     let places: [Place]
     var onAddPlaceTap: () -> Void
     var onPlaceTap: (Place) -> Void
+    var onPlaceDeleteRequest: (Place) -> Void
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -75,6 +76,7 @@ struct WatchingPlacesSectionView: View {
                             y: 4
                         )
                 }
+                .buttonStyle(.plain)
                 .accessibilityLabel("Add place")
                 .accessibilityHint("Adds a new place to observe")
             }
@@ -90,18 +92,28 @@ struct WatchingPlacesSectionView: View {
     private var carouselView: some View {
         ZStack {
             ForEach(places.indices, id: \.self) { index in
+                let place = places[index]
 
                 Button {
-                    onPlaceTap(places[index])
+                    onPlaceTap(place)
                 } label: {
                     WatchingPlaceCardView(
-                        place: places[index],
+                        place: place,
                         colorIndex: index
                     )
                     .frame(width: cardWidth, height: cardHeight)
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Open \(places[index].name)")
+                .contextMenu {
+                    Button(role: .destructive) {
+                        onPlaceDeleteRequest(place)
+                    } label: {
+                        Label("Delete folder", systemImage: "trash")
+                    }
+                }
+                .accessibilityLabel("Open \(place.name)")
+                .accessibilityHint("Long press for delete options")
                 .scaleEffect(scale(for: index))
                 .opacity(opacity(for: index))
                 .zIndex(zIndex(for: index))

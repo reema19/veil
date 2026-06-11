@@ -42,6 +42,9 @@ struct HomeView: View {
     @State private var showLockedPlaceAlert = false
     @State private var lockedPlaceMessage = ""
 
+    @State private var placePendingDelete: Place?
+    @State private var showDeletePlaceAlert = false
+
     @AppStorage("whenYouArriveEnabled")
     private var whenYouArriveEnabled = true
 
@@ -84,6 +87,10 @@ struct HomeView: View {
                     places: Array(allPlaces.prefix(3)),
                     onProfileTap: {
                         goToProfile = true
+                    },
+                    onPlaceDeleteRequest: { place in
+                        placePendingDelete = place
+                        showDeletePlaceAlert = true
                     }
                 )
             }
@@ -105,6 +112,21 @@ struct HomeView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(lockedPlaceMessage)
+        }
+        .alert("Delete this folder?", isPresented: $showDeletePlaceAlert) {
+            Button("Cancel", role: .cancel) {
+                placePendingDelete = nil
+            }
+
+            Button("Delete", role: .destructive) {
+                if let placePendingDelete {
+                    deletePlace(placePendingDelete)
+                }
+
+                placePendingDelete = nil
+            }
+        } message: {
+            Text("This will delete this folder and all observations saved inside it. This place will also be removed from your archive.")
         }
         .navigationDestination(isPresented: $goToMapScreen) {
             MapScreen(
@@ -166,6 +188,10 @@ struct HomeView: View {
                     },
                     onPlaceTap: { place in
                         checkAccessAndOpen(place)
+                    },
+                    onPlaceDeleteRequest: { place in
+                        placePendingDelete = place
+                        showDeletePlaceAlert = true
                     }
                 )
             }
@@ -190,10 +216,7 @@ struct HomeView: View {
             case .allowed:
                 selectedPlaceToOpen = place
 
-            case .outside(let distance, let radius):
-                let distanceText = formatMeters(distance)
-                let radiusText = formatMeters(radius)
-
+            case .outside(_, _):
                 lockedPlaceMessage = "You need to be at \(place.name) to observe it."
                 showLockedPlaceAlert = true
 
@@ -244,6 +267,29 @@ struct HomeView: View {
 
         } catch {
             print("Failed to save place:", error)
+        }
+    }
+
+    private func deletePlace(_ place: Place) {
+        if selectedPlaceToOpen?.id == place.id {
+            selectedPlaceToOpen = nil
+        }
+
+        LocationReminderManager.shared.stopMonitoringPlace(place)
+
+        let observations = Array(place.observations)
+
+        for observation in observations {
+            MediaStorageService.shared.deleteMedia(fileName: observation.mediaFileName)
+            modelContext.delete(observation)
+        }
+
+        modelContext.delete(place)
+
+        do {
+            try modelContext.save()
+        } catch {
+            print("Failed to delete place:", error)
         }
     }
 

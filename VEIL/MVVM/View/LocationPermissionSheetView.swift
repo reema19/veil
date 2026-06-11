@@ -11,86 +11,96 @@ struct LocationPermissionSheetView: View {
     let onDone: () -> Void
 
     var body: some View {
+        GeometryReader { geometry in
+            let sheetWidth = geometry.size.width
+            let scale = sheetWidth / 393
+            let sheetHeight = 500 * scale
 
-        ZStack {
+            ZStack(alignment: .bottom) {
 
-            // dark background
-            Color.black.opacity(0.18)
-                .ignoresSafeArea()
-                .transition(.opacity)
+                Color.black.opacity(0.18)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
 
-            VStack {
+                ZStack(alignment: .topLeading) {
 
-                Spacer()
+                    LocationPermissionSheetShape()
+                        .fill(Color.white)
+                        .frame(width: sheetWidth, height: sheetHeight)
 
-                VStack(spacing: 0) {
-
-                    // top button
-                    ZStack {
-                        Button(action: onClose) {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 20, weight: .medium))
-                                .foregroundColor(.gray)
-                                .frame(width: 56, height: 56)
-                                .background(Color.white)
-                                .clipShape(Circle())
-                        }
-                        .offset(y: -28)
+                    Button(action: onClose) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 17 * scale, weight: .medium))
+                            .foregroundColor(Color(hex: "727272"))
+                            .frame(width: 44 * scale, height: 44 * scale)
+                            .background(Color.white)
+                            .clipShape(Circle())
                     }
+                    .position(
+                        x: sheetWidth * 0.501,
+                        y: sheetHeight * 0.058
+                    )
 
-                    Spacer().frame(height: 4)
-
-                    // icon
                     ZStack {
-
                         Image("xmarkVector")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 102, height: 102)
+                            .frame(
+                                width: 102 * scale,
+                                height: 102 * scale
+                            )
                             .blur(radius: 2)
 
                         Image(systemName: "location.viewfinder")
-                            .font(.system(size: 28, weight: .medium))
+                            .font(.system(size: 28 * scale, weight: .medium))
                             .foregroundColor(Color("TitleColor"))
                     }
-
-                    Spacer().frame(height: 34)
+                    .position(
+                        x: sheetWidth * 0.5,
+                        y: sheetHeight * 0.326
+                    )
 
                     Text("We notice you through place")
-                        .font(.system(size: 24, weight: .bold))
+                        .font(.custom("DMSans-Bold", size: min(24 * scale, 24)))
                         .foregroundColor(Color("TitleColor"))
                         .multilineTextAlignment(.center)
-
-                    Spacer().frame(height: 14)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
+                        .frame(width: sheetWidth * 0.82)
+                        .position(
+                            x: sheetWidth * 0.5,
+                            y: sheetHeight * 0.475
+                        )
 
                     Text("Sense uses your location only when you arrive at a place you saved.")
-                        .font(.system(size: 16))
+                        .font(.custom("DMSans-Regular", size: min(16 * scale, 16)))
                         .foregroundColor(Color("SubtitleColor"))
                         .multilineTextAlignment(.center)
                         .lineSpacing(4)
-                        .padding(.horizontal, 32)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(width: sheetWidth * 0.82)
+                        .position(
+                            x: sheetWidth * 0.5,
+                            y: sheetHeight * 0.60
+                        )
 
-                    Spacer()
-
-                    // done button
                     Button(action: onDone) {
                         Text("Done")
-                            .font(.system(size: 18, weight: .semibold))
+                            .font(.custom("DMSans-Bold", size: min(15 * scale, 15)))
                             .foregroundColor(.white)
-                            .frame(maxWidth: 366)
-                            .frame(height: 62)
-                            .background(Color.black)
+                            .frame(
+                                width: sheetWidth * 0.8564,
+                                height: sheetHeight * 0.124
+                            )
+                            .background(Color(hex: "1F1F1F"))
                             .clipShape(Capsule())
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 36)
+                    .position(
+                        x: sheetWidth * 0.5,
+                        y: sheetHeight * 0.862
+                    )
                 }
-                .frame(height: 450)
-                .frame(maxWidth: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 70)
-                        .fill(Color.white)
-                )
+                .frame(width: sheetWidth, height: sheetHeight)
                 .transition(.move(edge: .bottom))
             }
             .ignoresSafeArea(edges: .bottom)
@@ -98,9 +108,78 @@ struct LocationPermissionSheetView: View {
     }
 }
 
+struct LocationPermissionSheetShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+
+        let sx = rect.width / 393
+        let sy = rect.height / 500
+
+        func p(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
+            CGPoint(x: x * sx, y: y * sy)
+        }
+
+        path.move(to: p(0, 110))
+
+        path.addCurve(
+            to: p(62.4769, 48),
+            control1: p(0, 76),
+            control2: p(28.2154, 48)
+        )
+
+        path.addLine(to: p(149.138, 48))
+
+        path.addCurve(
+            to: p(183.4, 63.5),
+            control1: p(163.246, 48),
+            control2: p(173.323, 54.5)
+        )
+
+        path.addCurve(
+            to: p(210.104, 63.5),
+            control1: p(190.454, 69.5),
+            control2: p(203.05, 69.5)
+        )
+
+        path.addCurve(
+            to: p(243.862, 48),
+            control1: p(220.181, 54.5),
+            control2: p(229.754, 48)
+        )
+
+        path.addLine(to: p(330.523, 48))
+
+        path.addCurve(
+            to: p(393, 110),
+            control1: p(364.785, 48),
+            control2: p(393, 76)
+        )
+
+        path.addLine(to: p(393, 500))
+        path.addLine(to: p(0, 500))
+        path.closeSubpath()
+
+        return path
+    }
+}
+
 #Preview {
-    LocationPermissionSheetView(
-        onClose: {},
-        onDone: {}
-    )
+    ZStack {
+        Color(hex: "F4F4E8")
+            .ignoresSafeArea()
+
+        VStack {
+            Spacer()
+
+            RoundedRectangle(cornerRadius: 42)
+                .fill(Color.gray.opacity(0.22))
+                .frame(width: 330, height: 330)
+                .padding(.bottom, 120)
+        }
+
+        LocationPermissionSheetView(
+            onClose: {},
+            onDone: {}
+        )
+    }
 }

@@ -9,6 +9,7 @@ struct ArchiveView: View {
 
     let places: [Place]
     let onProfileTap: () -> Void
+    let onPlaceDeleteRequest: (Place) -> Void
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -142,9 +143,19 @@ struct ArchiveView: View {
                 .onTapGesture {
                     handlePlaceTap(place)
                 }
+                .contextMenu {
+                    Button(role: .destructive) {
+                        selectedPlaceForSheet = nil
+                        selectedPlaceForRecap = nil
+                        onPlaceDeleteRequest(place)
+                    } label: {
+                        Label("Delete folder", systemImage: "trash")
+                    }
+                }
                 .highPriorityGesture(cardSwipeGesture)
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel("\(place.name)")
+                .accessibilityHint("Long press for delete options")
                 .scaleEffect(scale(for: index))
                 .opacity(opacity(for: index))
                 .zIndex(zIndex(for: index))
@@ -181,15 +192,15 @@ struct ArchiveView: View {
     }
 
     private func handlePlaceTap(_ place: Place) {
-        #if DEBUG
-        selectedPlaceForRecap = place
-        #else
-        if Date() >= place.activeEndDate {
+        if isRecapUnlocked(for: place) {
             selectedPlaceForRecap = place
         } else {
             selectedPlaceForSheet = place
         }
-        #endif
+    }
+
+    private func isRecapUnlocked(for place: Place) -> Bool {
+        Date() >= place.activeEndDate
     }
 
     private func moveToNextCard() {
@@ -391,7 +402,8 @@ private struct ArchiveLockedSheet: View {
     NavigationStack {
         ArchiveView(
             places: [],
-            onProfileTap: {}
+            onProfileTap: {},
+            onPlaceDeleteRequest: { _ in }
         )
     }
 }
