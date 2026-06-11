@@ -6,59 +6,59 @@
 import SwiftUI
 
 struct PresenceSummaryPlaceholderView: View {
-
+    
     let totalTime: String
-
+    
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-
+    
     private var isAccessibilitySize: Bool {
         dynamicTypeSize.isAccessibilitySize
     }
-
+    
     private var haloSize: CGFloat {
-        isAccessibilitySize ? 320 : 270
+        isAccessibilitySize ? 230 : 180
     }
-
+    
     private var containerHeight: CGFloat {
-        isAccessibilitySize ? 340 : 290
+        isAccessibilitySize ? 250 : 200
     }
-
+    
     var body: some View {
-
+        
         ZStack {
-
+            
             PresenceBreathRing(size: haloSize)
-
+            
             VStack(spacing: isAccessibilitySize ? 8 : 4) {
-
+                
                 Text("total")
                     .font(
                         .custom(
                             "DMSans-Regular",
-                            size: 13,
+                            size: 10,
                             relativeTo: .caption
                         )
                     )
                     .foregroundColor(Color("SubtitleColor"))
                     .lineLimit(1)
-
+                
                 Text(totalTime)
                     .font(
                         .custom(
                             "DMSans-Bold",
-                            size: 22,
+                            size: 20,
                             relativeTo: .title2
                         )
                     )
                     .foregroundColor(Color("TitleColor"))
                     .minimumScaleFactor(0.8)
                     .multilineTextAlignment(.center)
-
+                
                 Text("time present")
                     .font(
                         .custom(
                             "DMSans-Regular",
-                            size: 12,
+                            size: 10,
                             relativeTo: .caption
                         )
                     )

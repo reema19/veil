@@ -1,13 +1,7 @@
-//
-//  MainTabBar.swift
-//  VEIL
-//
-
 import SwiftUI
 
 struct MainTabBar: View {
     @Binding var selectedTab: Int
-
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var isAccessibilitySize: Bool {
@@ -26,18 +20,13 @@ struct MainTabBar: View {
 
             TabBarButton(
                 icon: "archivebox",
-                label: "Memory",
+                label: "Archive",
                 isSelected: selectedTab == 1
             ) {
                 selectedTab = 1
             }
         }
-        .padding(isAccessibilitySize ? 6 : 0)
-        .background(.ultraThinMaterial)
-        .clipShape(Capsule())
-        .overlay(
-            Capsule()
-                .strokeBorder(Color("TitleColor").opacity(0.08), lineWidth: 1)
-        )
+        .padding(isAccessibilitySize ? 8 : 6)
+        .glassEffect(.regular.interactive(), in: Capsule())
     }
 }

@@ -5,7 +5,6 @@
 //  Created by reema aljohani on 6/6/26.
 //
 
-
 import SwiftUI
 import AVFoundation
 
@@ -51,7 +50,6 @@ struct RealRecapSandboxView: View {
 
                 storyNavigationLayer(size: geometry.size)
             }
-            .ignoresSafeArea()
             .gesture(
                 DragGesture(minimumDistance: 24)
                     .onEnded { value in
@@ -61,6 +59,7 @@ struct RealRecapSandboxView: View {
                     }
             )
         }
+        .ignoresSafeArea()
     }
 
     @ViewBuilder
@@ -83,7 +82,8 @@ struct RealRecapSandboxView: View {
             RecapProgressBar(
                 currentIndex: pageIndex,
                 total: totalPages,
-                activeColor: progressColor
+                activeColor: progressColor,
+                inactiveColor: progressInactiveColor
             )
             .padding(.horizontal, 24)
             .padding(.top, 88)
@@ -105,29 +105,44 @@ struct RealRecapSandboxView: View {
         }
     }
 
+    private var progressInactiveColor: Color {
+        guard let observation = currentObservation else {
+            return Color.black.opacity(0.12)
+        }
+
+        switch observation.sense {
+        case .sight:
+            return Color.white.opacity(0.30)
+        case .sound:
+            return Color.black.opacity(0.12)
+        }
+    }
+
     private func introView(size: CGSize) -> some View {
         VStack(spacing: 0) {
             Spacer()
 
             VStack(spacing: 0) {
                 Text("YOUR")
-                    .font(.custom("DMSans-Bold", size: 12))
+                    .font(.custom("DMSans-Bold", size: 13))
+                    .tracking(1.8)
                     .foregroundColor(Color(hex: "9DB791"))
 
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text("\(place.activeDays)")
+
                     Text(place.activeDays == 1 ? "day" : "days")
                         .italic()
                 }
-                .font(.system(size: 54, weight: .light, design: .serif))
+                .font(.system(size: 64, weight: .light, design: .serif))
                 .foregroundColor(Color(hex: "252525"))
-                .padding(.top, 18)
+                .padding(.top, 14)
 
                 Text("at \(place.name)")
-                    .font(.system(size: 17, weight: .regular, design: .serif))
+                    .font(.system(size: 19, weight: .regular, design: .serif))
                     .italic()
-                    .foregroundColor(Color(hex: "252525"))
-                    .padding(.top, 8)
+                    .foregroundColor(Color(hex: "252525").opacity(0.7))
+                    .padding(.top, 10)
             }
 
             Spacer()
@@ -156,8 +171,8 @@ struct RealRecapSandboxView: View {
                 promptText(observation.promptText)
             }
             .padding(.horizontal, 28)
-            .padding(.top, 118)
-            .padding(.bottom, 58)
+            .padding(.top, 120)
+            .padding(.bottom, 52)
         }
         .frame(width: size.width, height: size.height)
     }
@@ -186,8 +201,8 @@ struct RealRecapSandboxView: View {
                 promptText(observation.promptText)
             }
             .padding(.horizontal, 28)
-            .padding(.top, 118)
-            .padding(.bottom, 58)
+            .padding(.top, 120)
+            .padding(.bottom, 52)
         }
         .frame(width: size.width, height: size.height)
     }
@@ -197,20 +212,21 @@ struct RealRecapSandboxView: View {
             Spacer()
 
             Text("YOU WERE PRESENT FOR")
-                .font(.custom("DMSans-Bold", size: 12))
+                .font(.custom("DMSans-Bold", size: 13))
+                .tracking(1.8)
                 .foregroundColor(Color(hex: "6F6F6F"))
 
             Text(formatDuration(place.totalPresenceSeconds))
-                .font(.system(size: 54, weight: .light, design: .serif))
+                .font(.system(size: 64, weight: .light, design: .serif))
                 .italic()
                 .foregroundColor(Color(hex: "252525"))
-                .padding(.top, 22)
+                .padding(.top, 18)
 
             Text("at \(place.name).")
-                .font(.system(size: 17, weight: .regular, design: .serif))
+                .font(.system(size: 19, weight: .regular, design: .serif))
                 .italic()
                 .foregroundColor(Color(hex: "6F6F6F"))
-                .padding(.top, 22)
+                .padding(.top, 14)
 
             Spacer()
 
@@ -223,29 +239,29 @@ struct RealRecapSandboxView: View {
     }
 
     private func headerText(placeName: String, date: Date, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             Text("at \(placeName)")
-                .font(.system(size: 18, weight: .regular, design: .serif))
+                .font(.system(size: 19, weight: .regular, design: .serif))
                 .foregroundColor(color)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
 
             Text(formatDate(date))
-                .font(.custom("DMSans-Regular", size: 14))
-                .foregroundColor(color.opacity(0.92))
+                .font(.custom("DMSans-Regular", size: 13))
+                .foregroundColor(color.opacity(0.7))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func promptText(_ text: String) -> some View {
         Text("“\(text)”")
-            .font(.custom("DMSans-Bold", size: 26))
+            .font(.system(size: 22, weight: .light, design: .serif))
             .foregroundColor(.white)
-            .lineSpacing(5)
-            .multilineTextAlignment(.leading)
+            .lineSpacing(8)
+            .multilineTextAlignment(.center)
             .lineLimit(4)
             .minimumScaleFactor(0.72)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .center)
     }
 
     private var bottomGradient: some View {
@@ -255,19 +271,18 @@ struct RealRecapSandboxView: View {
             LinearGradient(
                 colors: [
                     Color.black.opacity(0.0),
-                    Color.black.opacity(0.20),
-                    Color.black.opacity(0.58)
+                    Color.black.opacity(0.25),
+                    Color.black.opacity(0.65)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
             )
-            .frame(height: 360)
+            .frame(height: 400)
         }
     }
 
     private func storyNavigationLayer(size: CGSize) -> some View {
         HStack(spacing: 0) {
-
             Color.clear
                 .contentShape(Rectangle())
                 .onTapGesture {
@@ -366,7 +381,7 @@ private struct RealRecapAudioPlayer: View {
                         needleIsDown ? playAudio() : pauseAudio()
                     } label: {
                         Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 27, weight: .bold))
+                            .font(.system(size: 24, weight: .bold))
                             .foregroundColor(.black)
                             .frame(width: 52, height: 52)
                     }
@@ -376,7 +391,7 @@ private struct RealRecapAudioPlayer: View {
 
                     Text(formatTime(duration))
                 }
-                .font(.custom("DMSans-Regular", size: 20))
+                .font(.custom("DMSans-Regular", size: 18))
                 .foregroundColor(Color(hex: "252525"))
             }
         }
@@ -568,12 +583,13 @@ private struct RecapProgressBar: View {
     let currentIndex: Int
     let total: Int
     let activeColor: Color
+    let inactiveColor: Color
 
     var body: some View {
         HStack(spacing: 6) {
             ForEach(0..<max(total, 1), id: \.self) { index in
                 Capsule()
-                    .fill(index <= currentIndex ? activeColor : Color.black.opacity(0.12))
+                    .fill(index <= currentIndex ? activeColor : inactiveColor)
                     .frame(height: 3)
                     .frame(maxWidth: .infinity)
             }

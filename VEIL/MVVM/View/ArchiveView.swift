@@ -10,6 +10,7 @@ struct ArchiveView: View {
     let places: [Place]
     let onProfileTap: () -> Void
     let onPlaceDeleteRequest: (Place) -> Void
+    @Binding var isLockedSheetShowing: Bool
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -49,16 +50,22 @@ struct ArchiveView: View {
             }
             .background(Color("BackgroundColor").ignoresSafeArea())
         }
-        .sheet(item: $selectedPlaceForSheet) { place in
-            ArchiveLockedSheet(
-                place: place,
-                onDone: {
-                    selectedPlaceForSheet = nil
-                }
-            )
-            .presentationDetents([.height(isAccessibilitySize ? 560 : 430)])
-            .presentationDragIndicator(.hidden)
+        .overlay {
+            if let selectedPlaceForSheet {
+                ArchiveLockedSheet(
+                    place: selectedPlaceForSheet,
+                    onDone: {
+                        withAnimation(.easeInOut(duration: 0.24)) {
+                            self.selectedPlaceForSheet = nil
+                            self.isLockedSheetShowing = false
+                        }
+                    }
+                )
+                .transition(.opacity)
+                .zIndex(20)
+            }
         }
+        .animation(.easeInOut(duration: 0.24), value: selectedPlaceForSheet?.id)
         .fullScreenCover(item: $selectedPlaceForRecap) { place in
             RealRecapSandboxView(place: place)
         }
@@ -79,7 +86,10 @@ struct ArchiveView: View {
                 Image(systemName: "person.crop.circle")
                     .font(.system(size: 23, weight: .medium))
                     .foregroundColor(Color("TitleColor"))
-                    .frame(width: isAccessibilitySize ? 62 : 58, height: isAccessibilitySize ? 62 : 58)
+                    .frame(
+                        width: isAccessibilitySize ? 62 : 58,
+                        height: isAccessibilitySize ? 62 : 58
+                    )
                     .background(.ultraThinMaterial)
                     .clipShape(Circle())
                     .overlay(
@@ -147,6 +157,7 @@ struct ArchiveView: View {
                     Button(role: .destructive) {
                         selectedPlaceForSheet = nil
                         selectedPlaceForRecap = nil
+                        isLockedSheetShowing = false
                         onPlaceDeleteRequest(place)
                     } label: {
                         Label("Delete folder", systemImage: "trash")
@@ -195,7 +206,10 @@ struct ArchiveView: View {
         if isRecapUnlocked(for: place) {
             selectedPlaceForRecap = place
         } else {
-            selectedPlaceForSheet = place
+            withAnimation(.easeInOut(duration: 0.24)) {
+                selectedPlaceForSheet = place
+                isLockedSheetShowing = true
+            }
         }
     }
 
@@ -321,79 +335,118 @@ private struct ArchiveLockedSheet: View {
     }
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            Color.white.ignoresSafeArea()
+        GeometryReader { geometry in
+            let sheetWidth = geometry.size.width
+            let scale = sheetWidth / 393
+            let sheetHeight = (isAccessibilitySize ? 560 : 500) * scale
 
-            Button(action: onDone) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 24, weight: .medium))
-                    .foregroundColor(Color(hex: "6F6F6F"))
-                    .frame(width: 54, height: 54)
-                    .background(.white)
-                    .clipShape(Circle())
-                    .shadow(color: .black.opacity(0.08), radius: 10, x: 0, y: 4)
-            }
-            .padding(.top, 10)
-            .padding(.trailing, 24)
+            ZStack(alignment: .bottom) {
 
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: 0) {
-                    Spacer().frame(height: isAccessibilitySize ? 70 : 78)
-
-                    ZStack {
-                        Circle()
-                            .fill(Color(red: 0.82, green: 0.88, blue: 0.82).opacity(0.45))
-                            .frame(width: 72, height: 72)
-                            .blur(radius: 6)
-
-                        Image(systemName: "eye.slash")
-                            .font(.system(size: 30, weight: .medium))
-                            .foregroundColor(.black)
+                Color.black.opacity(0.18)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .onTapGesture {
+                        onDone()
                     }
 
+                ZStack(alignment: .topLeading) {
+
+                    LocationPermissionSheetShape()
+                        .fill(Color.white)
+                        .frame(width: sheetWidth, height: sheetHeight)
+
+                    Button(action: onDone) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 17 * scale, weight: .medium))
+                            .foregroundColor(Color(hex: "727272"))
+                            .frame(width: 44 * scale, height: 44 * scale)
+                            .background(Color.white)
+                            .clipShape(Circle())
+                    }
+                    .position(
+                        x: sheetWidth * 0.501,
+                        y: sheetHeight * 0.058
+                    )
+
+                    ZStack {
+                        Image("xmarkVector")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(
+                                width: 102 * scale,
+                                height: 102 * scale
+                            )
+                            .blur(radius: 2)
+
+                        Image(systemName: "eye.slash")
+                            .font(.system(size: 28 * scale, weight: .medium))
+                            .foregroundColor(Color("TitleColor"))
+                    }
+                    .position(
+                        x: sheetWidth * 0.5,
+                        y: sheetHeight * 0.31
+                    )
+
                     Text(titleText)
-                        .font(.custom("DMSans-Bold", size: 24, relativeTo: .title2))
-                        .foregroundColor(.black)
+                        .font(.custom("DMSans-Bold", size: min(24 * scale, 24)))
+                        .foregroundColor(Color("TitleColor"))
                         .multilineTextAlignment(.center)
-                        .padding(.top, 28)
-                        .padding(.horizontal, 28)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
+                        .frame(width: sheetWidth * 0.82)
+                        .position(
+                            x: sheetWidth * 0.5,
+                            y: sheetHeight * 0.46
+                        )
 
                     Text("Your photos and sounds remain hidden until the period ends.")
-                        .font(.custom("DMSans-Regular", size: 16, relativeTo: .body))
-                        .foregroundColor(Color(hex: "6F6F6F"))
+                        .font(.custom("DMSans-Regular", size: min(16 * scale, 16)))
+                        .foregroundColor(Color("SubtitleColor"))
                         .multilineTextAlignment(.center)
-                        .lineSpacing(3)
-                        .padding(.top, 20)
-                        .padding(.horizontal, 34)
+                        .lineSpacing(4)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(width: sheetWidth * 0.82)
+                        .position(
+                            x: sheetWidth * 0.5,
+                            y: sheetHeight * 0.58
+                        )
 
                     VStack(spacing: 4) {
                         Text("Opens on")
-                            .font(.custom("DMSans-Regular", size: 18, relativeTo: .body))
+                            .font(.custom("DMSans-Regular", size: min(15 * scale, 15)))
                             .foregroundColor(Color(hex: "252525"))
 
                         Text(openDateText)
-                            .font(.custom("DMSans-Bold", size: 18, relativeTo: .headline))
+                            .font(.custom("DMSans-Bold", size: min(16 * scale, 16)))
                             .foregroundColor(Color(hex: "252525"))
                             .multilineTextAlignment(.center)
                     }
-                    .padding(.top, 28)
+                    .frame(width: sheetWidth * 0.82)
+                    .position(
+                        x: sheetWidth * 0.5,
+                        y: sheetHeight * 0.70
+                    )
 
                     Button(action: onDone) {
                         Text("Done")
-                            .font(.custom("DMSans-SemiBold", size: 16, relativeTo: .headline))
+                            .font(.custom("DMSans-Bold", size: min(15 * scale, 15)))
                             .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(minHeight: 62)
-                            .background(Color(hex: "252525"))
+                            .frame(
+                                width: sheetWidth * 0.8564,
+                                height: sheetHeight * 0.124
+                            )
+                            .background(Color(hex: "1F1F1F"))
                             .clipShape(Capsule())
                     }
-                    .padding(.horizontal, 34)
-                    .padding(.top, 42)
-
-                    Spacer().frame(height: 32)
+                    .position(
+                        x: sheetWidth * 0.5,
+                        y: sheetHeight * 0.862
+                    )
                 }
-                .frame(maxWidth: .infinity)
+                .frame(width: sheetWidth, height: sheetHeight)
+                .transition(.move(edge: .bottom))
             }
+            .ignoresSafeArea(edges: .bottom)
         }
     }
 }
@@ -403,7 +456,8 @@ private struct ArchiveLockedSheet: View {
         ArchiveView(
             places: [],
             onProfileTap: {},
-            onPlaceDeleteRequest: { _ in }
+            onPlaceDeleteRequest: { _ in },
+            isLockedSheetShowing: .constant(false)
         )
     }
 }

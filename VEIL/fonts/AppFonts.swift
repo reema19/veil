@@ -30,7 +30,7 @@ extension Font {
 
     static let veilHeadline = Font.custom(
         "DMSans-SemiBold",
-        size: 16,
+        size: 20,
         relativeTo: .headline
     )
 
@@ -47,8 +47,8 @@ extension Font {
     )
 
     static let veilCaption = Font.custom(
-        "DMSans-Regular",
-        size: 12,
+        "DMSans-Bold",
+        size: 14,
         relativeTo: .caption
     )
 

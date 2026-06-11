@@ -16,7 +16,7 @@ struct PresenceBreathRing: View {
     @State private var rotateInner = false
     @State private var shimmer = false
 
-    var size: CGFloat = 240
+    var size: CGFloat = 200
 
     var body: some View {
 

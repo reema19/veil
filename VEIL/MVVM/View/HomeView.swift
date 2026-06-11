@@ -38,6 +38,8 @@ struct HomeView: View {
     @State private var goToProfile = false
     @State private var showMaxPlacesAlert = false
 
+    @State private var archiveLockedSheetIsShowing = false
+
     @State private var selectedPlaceToOpen: Place?
     @State private var showLockedPlaceAlert = false
     @State private var lockedPlaceMessage = ""
@@ -55,7 +57,7 @@ struct HomeView: View {
     }
 
     private var pageSpacing: CGFloat {
-        isAccessibilitySize ? 32 : 26
+        isAccessibilitySize ? 28 : 20
     }
 
     private var horizontalPadding: CGFloat {
@@ -91,7 +93,8 @@ struct HomeView: View {
                     onPlaceDeleteRequest: { place in
                         placePendingDelete = place
                         showDeletePlaceAlert = true
-                    }
+                    },
+                    isLockedSheetShowing: $archiveLockedSheetIsShowing
                 )
             }
         }
@@ -99,6 +102,8 @@ struct HomeView: View {
             MainTabBar(selectedTab: $selectedTab)
                 .padding(.horizontal, isAccessibilitySize ? 24 : 40)
                 .padding(.bottom, 8)
+                .opacity(archiveLockedSheetIsShowing ? 0 : 1)
+                .allowsHitTesting(!archiveLockedSheetIsShowing)
         }
         .onAppear {
             lifecycleService.updateExpiredPlaces(activePlaces, context: modelContext)
@@ -171,7 +176,7 @@ struct HomeView: View {
                         .accessibilityAddTraits(.isHeader)
 
                     Text("Small moments of attention add up over time.")
-                        .font(.custom("DMSans-Regular", size: 13, relativeTo: .body))
+                        .font(.custom("DMSans-Regular", size: 12, relativeTo: .body))
                         .foregroundColor(Color("SubtitleColor"))
                         .lineLimit(nil)
                         .fixedSize(horizontal: false, vertical: true)
@@ -196,8 +201,8 @@ struct HomeView: View {
                 )
             }
             .padding(.horizontal, horizontalPadding)
-            .padding(.top, 20)
-            .padding(.bottom, isAccessibilitySize ? 140 : 110)
+            .padding(.top, 16)
+            .padding(.bottom, isAccessibilitySize ? 120 : 90)
         }
     }
 
@@ -299,14 +304,6 @@ struct HomeView: View {
         let remainingSeconds = seconds % 60
 
         return String(format: "%02d:%02d:%02d", hours, minutes, remainingSeconds)
-    }
-
-    private func formatMeters(_ meters: CLLocationDistance) -> String {
-        if meters >= 1000 {
-            return String(format: "%.1f km", meters / 1000)
-        } else {
-            return "\(Int(meters)) m"
-        }
     }
 }
 

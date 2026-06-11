@@ -123,18 +123,20 @@ struct WatchingPlacesSectionView: View {
         .frame(maxWidth: .infinity)
         .frame(height: cardHeight + 24)
         .contentShape(Rectangle())
-        .gesture(
-            DragGesture()
+        .highPriorityGesture(
+            DragGesture(minimumDistance: 10, coordinateSpace: .local)
                 .onChanged { value in
-                    dragOffset = value.translation.width
+                    guard abs(value.translation.width) > abs(value.translation.height) else { return }
+                    dragOffset = value.translation.width * 0.7
                 }
                 .onEnded { value in
-                    let threshold: CGFloat = 60
+                    let velocity = value.predictedEndTranslation.width
+                    let threshold: CGFloat = 40
 
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
-                        if value.translation.width < -threshold {
+                    withAnimation(.interpolatingSpring(stiffness: 200, damping: 28)) {
+                        if value.translation.width < -threshold || velocity < -200 {
                             moveToNextCard()
-                        } else if value.translation.width > threshold {
+                        } else if value.translation.width > threshold || velocity > 200 {
                             moveToPreviousCard()
                         }
 

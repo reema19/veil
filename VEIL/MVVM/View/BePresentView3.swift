@@ -54,12 +54,12 @@ struct BePresentView3: View {
 
                     Spacer().frame(height: 60)
 
-                    StartButtonView {
+                    StartButtonView(showCentered: false) {
                         viewModel.handleStart()
                     }
                     .frame(height: 50)
                     .padding(.horizontal, 32)
-                    .padding(.bottom, 36)
+                    .padding(.bottom, 22)
                 }
                 .transition(.opacity)
             }

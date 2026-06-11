@@ -13,8 +13,8 @@ struct ConfirmModalView: View {
     var onBack: () -> Void
     var onContinue: (_ placeName: String, _ activeDays: Int) -> Void
 
-    var chevronOffsetX: CGFloat = -20
-    var titleOffsetX: CGFloat = -15
+    var chevronOffsetX: CGFloat = -15
+    var titleOffsetX: CGFloat = -9
 
     @State private var placeName: String = ""
     @State private var activeDays: Double = 1
@@ -29,6 +29,12 @@ struct ConfirmModalView: View {
 
     private var canAddPlace: Bool {
         !trimmedPlaceName.isEmpty && isRadiusAllowed
+    }
+
+    private var activePeriodText: String {
+        let days = Int(activeDays)
+        let dayWord = days == 1 ? "Day" : "Days"
+        return "Active Period (\(days) \(dayWord))"
     }
 
     private var radiusText: String {
@@ -65,7 +71,7 @@ struct ConfirmModalView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal)
 
-            Text("Name The Place")
+            Text("Name This Place")
                 .font(.veilCaption)
                 .foregroundColor(.black)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -91,7 +97,7 @@ struct ConfirmModalView: View {
             .accessibilityHint("Enter a name for this place")
             .accessibilityValue(placeName.isEmpty ? "Empty" : placeName)
 
-            Text("Active Period")
+            Text(activePeriodText)
                 .font(.veilCaption)
                 .foregroundColor(.black)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -130,31 +136,13 @@ struct ConfirmModalView: View {
                 Text("This place will stay active for your selected period")
                     .font(.veilSmallCaption)
                     .foregroundColor(.black.opacity(0.8))
-                    .lineLimit(nil)
                     .fixedSize(horizontal: false, vertical: true)
+                    .lineLimit(1)
 
                 Spacer()
             }
-            .padding(.horizontal, 5)
-            .padding(.top, 4)
-
-            HStack(spacing: 2) {
-
-                Image(systemName: "location.circle")
-                    .font(.system(size: 14))
-                    .foregroundColor(.black)
-                    .accessibilityHidden(true)
-
-                Text("Selected radius: \(radiusText)")
-                    .font(.veilSmallCaption)
-                    .foregroundColor(.black.opacity(0.8))
-                    .lineLimit(nil)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                Spacer()
-            }
-            .padding(.horizontal, 5)
-            .padding(.top, -8)
+            .padding(.horizontal, 1)
+            .padding(.top, 14)
 
             if !isRadiusAllowed {
                 HStack(spacing: 2) {
@@ -179,7 +167,7 @@ struct ConfirmModalView: View {
                 onContinue(trimmedPlaceName, Int(activeDays))
             }) {
 
-                Text("Add place")
+                Text("Save place")
                     .font(.veilHeadline)
                     .foregroundColor(.white)
                     .frame(maxWidth: 150)
