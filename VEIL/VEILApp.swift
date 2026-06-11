@@ -25,6 +25,7 @@ struct VEILApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .preferredColorScheme(.light)
         }
         .modelContainer(for: [
             LocalProfile.self,
