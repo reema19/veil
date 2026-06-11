@@ -5,7 +5,6 @@
 //  Created by reema aljohani on 5/30/26.
 //
 
-
 import Foundation
 import UIKit
 
@@ -85,5 +84,21 @@ final class MediaStorageService {
     ) -> URL {
 
         documentsDirectory.appendingPathComponent(fileName)
+    }
+
+    // MARK: - Delete Media
+
+    func deleteMedia(fileName: String) {
+        let url = mediaURL(fileName: fileName)
+
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            return
+        }
+
+        do {
+            try FileManager.default.removeItem(at: url)
+        } catch {
+            print("Failed to delete media file:", error.localizedDescription)
+        }
     }
 }
